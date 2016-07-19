@@ -22,8 +22,9 @@ export class Sidebar extends Component {
   toggleMenuItem(ev) {
     ev.preventDefault();
 
+    this._closeAllPanels();
     this.setState({
-      activeTab: 'opdatasets'
+      activeTab: this.state.activeTab !== 'opdatasets' ? 'opdatasets' : null
     });
   }
 
@@ -44,30 +45,47 @@ export class Sidebar extends Component {
     this.setState(changeState);
   }
 
+  _closeAllPanels(panel) {
+    if (panel !== 'filters') {
+    //document.getElementById('filters-panel').classList.remove('active');
+    }
+
+    if (panel !== 'styles') {
+      document.getElementById('styles-panel').classList.remove('active');
+    }
+
+    if (panel !== 'settings') {
+      document.getElementById('settings-panel').classList.remove('active');
+    }
+  }
+
   toggleFilterPanel(ev) {
     ev.preventDefault();
     
+    this._closeAllPanels('filters');
     document.getElementById('filters-panel').classList.toggle('active');
     this.setState({
-      activeTab: 'filters'
+      activeTab: document.getElementById('filters-panel').classList.contains('active') ? 'filters' : null
     });
   }
 
   toggleStylesPanel(ev) {
     ev.preventDefault();
 
+    this._closeAllPanels('styles');
     document.getElementById('styles-panel').classList.toggle('active');
     this.setState({
-      activeTab: 'styles'
+      activeTab: document.getElementById('styles-panel').classList.contains('active') ? 'styles' : null
     });
   }
 
   toggleSettingsPanel(ev) {
     ev.preventDefault();
 
+    this._closeAllPanels('settings');
     document.getElementById('settings-panel').classList.toggle('active');
     this.setState({
-      activeTab: 'settings'
+      activeTab: document.getElementById('settings-panel').classList.contains('active') ? 'settings' : null
     });
   }
 

@@ -85,7 +85,7 @@ export default class HomeView extends Component {
 
           tooltip.html('<h1>' + 'X: ' + d.dateHour + ' Y: ' + d.est.toFixed(2) + ' uncertainty:' + dist.toFixed(3) + '</h1>');
         })
-        .on("mouseout", d => {
+        .on('mouseout', d => {
           tooltip.transition()
             .duration(200)
             .style('opacity', 0);
@@ -137,7 +137,7 @@ export default class HomeView extends Component {
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom);
 
-    const headingsArray = [];
+    let headingsArray = [];
     Object.keys(this.props.chart.opdatasets).forEach(k => {
       if (this.props.chart.opdatasets[k]) {
         headingsArray = headingsArray.concat(Object.keys(this.state[k + 'Data'][0]).filter(d => d !== 'date'));
