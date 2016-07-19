@@ -1,0 +1,10 @@
+.secondary-panel {
+  z-index: 9999 !important;
+  left: 230px !important;
+  right: 0 !important;
+  display: none;
+}
+
+.secondary-panel.active {
+  display: block;
+}

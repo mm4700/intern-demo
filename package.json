@@ -38,6 +38,7 @@
     "react-addons-css-transition-group": "^15.0.2",
     "react-addons-test-utils": "^15.0.2",
     "react-addons-update": "^15.0.2",
+    "react-color": "^2.2.0",
     "react-dom": "^15.0.1",
     "react-mixin": "^3.0.5",
     "react-overlays": "^0.6.3",

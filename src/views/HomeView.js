@@ -7,14 +7,11 @@ import * as d3 from 'd3';
 const parseDate = d3.time.format('%e/%-m/%Y %H');
 
 export default class HomeView extends Component {
-
   constructor(props, context) {
     super(props, context)
   }
 
   componentWillMount() {
-    const { dispatch } = this.props;
-
     this.props.actions.fetchUncertainityData();
     this.props.actions.fetchMeasurementsData();
     this.props.actions.fetchRatesData();
@@ -46,37 +43,40 @@ export default class HomeView extends Component {
       });
     });
 
+    m.minDate = m[0].date;
+    m.maxDate = m[m.length-1].date;
+
     const datasetState = {};
     datasetState[dataset] = m;
     this.setState(datasetState);
   }
 
-  //mydata.minDate = new Date(d3.min(mydata.data1.map(function(d) { return d.date})));
-  //mydata.maxDate = new Date(d3.max(mydata.data1.map(function(d) { return d.date})));
-
   /*drawChart() {
     const el = document.getElementById('content');
 
+    // change based on whether legend is shown? whethever event timeline is shown?
     const margin = { top: 10, right: 55, bottom: 100, left: 40 };
-    const margin2 = { top: 430, right: 33, bottom: 20, left: 40 };
     const width = document.getElementById('content').clientWidth - margin.left - margin.right;
     const height = (document.getElementById('content').clientHeight - 100) - margin.top - margin.bottom;
-    const height2 = 100 - margin2.top - margin2.bottom;
-
+    
     const svg = d3.select(el)
           .append('svg')
             .attr('width', width + margin.left + margin.right)
             .attr('height', height + margin.top + margin.bottom);
 
+    opdatasets: {
+        uncertainity: this.state['uncertainity'],
+        measurements: this.state['measurements'],
+        rates: this.state['rates'],
+      }
+    if (this.props.chart.opdatasets.uncertainity) {
+
+    }
     const headingsArray = Object.keys(this.state.uncertainityData[0]).filter(d => d !== 'date');
-    const colorsArray =['#E2C6DA', '#9FA47B', '#BABC94', '#CBCB47', '#ECF370', '#EADD2C', '#92CD00'];
+    const colorsArray = ['#E2C6DA', '#9FA47B', '#BABC94', '#CBCB47', '#ECF370', '#EADD2C', '#92CD00'];
 
     const x = d3.time.scale()
       .domain([mydata.minDate, mydata.maxDate])
-      .range([0, width]);
-
-    const x2 = d3.time.scale()
-      .domain(x.domain())
       .range([0, width]);
     
     const y = d3.scale.linear().range([height, 0])
@@ -85,18 +85,10 @@ export default class HomeView extends Component {
     const y1 = d3.scale.linear().range([height, 0])
       .domain([500, d3.max(mydata.data3.map(d => { return d.rate; }))]);
 
-    const y2 = d3.scale.linear().range([height2, 0])
-      .domain(y.domain());
-
     const xAxis = d3.svg.axis()
         .scale(x)
         .orient('bottom')
         .tickFormat(d3.time.format('%e/%-m %H'));
-
-    const xAxis2 = d3.svg.axis()
-      .scale(x2)
-      .orient('bottom')
-      .tickFormat(d3.time.format('%e/%-m'));
 
     const yAxis = d3.svg.axis()
         .scale(y)
@@ -106,26 +98,10 @@ export default class HomeView extends Component {
         .scale(y1)
         .orient('right');
 
-    const yAxis2 = d3.svg.axis()
-        .scale(y2)
-        .orient('left');
-
     const tooltip = d3.select(el)
       .append('div')
         .attr('class', 'tooltip')
         .style('opacity', 0);
-
-    const brush = d3.svg.brush()
-      .x(x2)
-      .on('brush', brushed);
-
-    function brushed() {
-      x.domain(brush.empty() ? x2.domain() : brush.extent());
-      primary.selectAll('path.line').attr('d', d => {return line(d.values)});
-      primary.selectAll('path.line2').attr('d', d => {return line2(d.values)});
-      primary.selectAll('.dot').attr('cx', xMap);
-      primary.select('.x.axis').call(xAxis);
-    }
 
     const line = d3.svg.line()
       .interpolate('basis')

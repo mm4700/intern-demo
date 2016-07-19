@@ -6,23 +6,25 @@ export class Sidebar extends Component {
     super(props, context);
 
     this.state = {
+      activeTab: null,
       uncertainity: true,
       measurements: true,
-      rates: true, 
+      rates: true,
     };
 
     this.toggleMenuItem = this.toggleMenuItem.bind(this);
     this.toggleDataset = this.toggleDataset.bind(this);
     this.toggleFilterPanel = this.toggleFilterPanel.bind(this);
-    this.toggleColorsPanel = this.toggleColorsPanel.bind(this);
+    this.toggleStylesPanel = this.toggleStylesPanel.bind(this);
     this.toggleSettingsPanel = this.toggleSettingsPanel.bind(this);
   }
 
   toggleMenuItem(ev) {
     ev.preventDefault();
 
-    ev.currentTarget.parentElement.classList.toggle('open');
-    ev.currentTarget.nextSibling.classList.toggle('in');
+    this.setState({
+      activeTab: 'opdatasets'
+    });
   }
 
   toggleDataset(dataset, ev) {
@@ -30,19 +32,43 @@ export class Sidebar extends Component {
 
     const changeState = {};
     changeState[dataset] = !this.state[dataset];
+
+    this.props.actions.configureChart({
+      opdatasets: {
+        uncertainity: this.state['uncertainity'],
+        measurements: this.state['measurements'],
+        rates: this.state['rates'],
+      }
+    });
+
     this.setState(changeState);
   }
 
   toggleFilterPanel(ev) {
     ev.preventDefault();
+    
+    document.getElementById('filters-panel').classList.toggle('active');
+    this.setState({
+      activeTab: 'filters'
+    });
   }
 
-  toggleColorsPanel(ev) {
+  toggleStylesPanel(ev) {
     ev.preventDefault();
+
+    document.getElementById('styles-panel').classList.toggle('active');
+    this.setState({
+      activeTab: 'styles'
+    });
   }
 
   toggleSettingsPanel(ev) {
     ev.preventDefault();
+
+    document.getElementById('settings-panel').classList.toggle('active');
+    this.setState({
+      activeTab: 'settings'
+    });
   }
 
   render() {
@@ -59,11 +85,11 @@ export class Sidebar extends Component {
                   </a>
                 </small>
               </li>
-              <li className="has-submenu">
+              <li className={`has-submenu ${(this.state.activeTab === 'opdatasets' ? 'active open' : '')}`}>
                 <a href="#" onClick={this.toggleMenuItem}>
-                  <i className="fa fa-list"></i> <span className="nav-text">Attributes</span>
+                  <i className="fa fa-list"></i> <span className="nav-text">Opdatasets</span>
                 </a>
-                <div className="sub-menu collapse secondary list-style-circle">
+                <div className={`sub-menu collapse secondary list-style-circle ${(this.state.activeTab === 'opdatasets' ? 'in' : '')}`}>
                   <ul>
                     <li className={this.state.uncertainity ? 'active' : ''}>
                       <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('uncertainity', ev)}>Uncertainity</a>
@@ -77,17 +103,17 @@ export class Sidebar extends Component {
                   </ul>
                 </div>
               </li>
-              <li>
+              <li className={this.state.activeTab === 'filters' ? 'active' : ''}>
                 <a href="#" onClick={this.toggleFilterPanel}>
                   <i className="fa fa-filter"></i> <span className="nav-text">Filters</span>
                 </a>
               </li>
-              <li>
-                <a href="#" onClick={this.toggleColorsPanel}>
-                  <i className="fa fa-paint-brush"></i> <span className="nav-text">Colors</span>
+              <li className={this.state.activeTab === 'styles' ? 'active' : ''}>
+                <a href="#" onClick={this.toggleStylesPanel}>
+                  <i className="fa fa-paint-brush"></i> <span className="nav-text">Styles</span>
                 </a>
               </li>
-              <li>
+              <li className={this.state.activeTab === 'settings' ? 'active' : ''}>
                 <a href="#" onClick={this.toggleSettingsPanel}>
                   <i className="fa fa-cog"></i> <span className="nav-text">Settings</span>
                 </a>

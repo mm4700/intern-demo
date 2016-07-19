@@ -4,7 +4,27 @@ import {
 } from '../constants';
 
 const initialState = {
-  configuration: null
+  configuration: {
+    opdatasets: {
+      uncertainity: true,
+      measurements: true,
+      rates: true,
+    },
+    filters: {
+
+    },
+    styles: {
+
+    },
+    settings: {
+      showLegend: false,
+      showUncertainityBounds: true,
+      showUncertainityBand: false,
+      showEdgeCoordinates: true,
+      enableTooltips: true,
+      enableDataPointInteraction: false,
+    }
+  }
 };
 
 export default createReducer(initialState, {
