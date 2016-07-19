@@ -1,5 +1,8 @@
 import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import * as actionCreators from '../actions';
 
 export class SettingsPanel extends Component {
   constructor(props, context) {
@@ -107,4 +110,12 @@ export class SettingsPanel extends Component {
   }
 };
 
-export default SettingsPanel;
+const mapStateToProps = (state) => ({
+  chart: state.chart.configuration,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators(actionCreators, dispatch)
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(SettingsPanel);

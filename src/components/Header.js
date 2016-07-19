@@ -1,6 +1,9 @@
 import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
 import InputElement from 'react-input-mask';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import * as actionCreators from '../actions';
 
 export class Header extends Component {
   constructor(props, context) {
@@ -210,4 +213,12 @@ export class Header extends Component {
   }
 }
 
-export default Header;
+const mapStateToProps = (state) => ({
+  chart: state.chart.configuration,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators(actionCreators, dispatch)
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Header);

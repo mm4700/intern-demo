@@ -1,5 +1,8 @@
 import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import * as actionCreators from '../actions';
 
 export class Sidebar extends Component {
   constructor(props, context) {
@@ -30,8 +33,12 @@ export class Sidebar extends Component {
   toggleDataset(dataset, ev) {
     ev.preventDefault();
 
+    console.log('toggleDataset', dataset);
+
     const changeState = {};
     changeState[dataset] = !this.state[dataset];
+
+    console.log('toggleDataset', changeState);
 
     this.props.actions.configureChart({
       opdatasets: {
@@ -42,6 +49,7 @@ export class Sidebar extends Component {
     });
 
     this.setState(changeState);
+    console.log('toggleDataset', this.state);
   }
 
   _closeAllPanels(panel) {
@@ -124,4 +132,12 @@ export class Sidebar extends Component {
   }
 };
 
-export default Sidebar;
+const mapStateToProps = (state) => ({
+  chart: state.chart.configuration,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators(actionCreators, dispatch)
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Sidebar);
