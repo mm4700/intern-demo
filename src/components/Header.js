@@ -1,12 +1,15 @@
 import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
+import InputElement from 'react-input-mask';
 
 export class Header extends Component {
   constructor(props, context) {
     super(props, context);
 
     this.state = {
-      filters: false
+      filters: false,
+      startDate: '01/01/2016 00:00:00',
+      endDate: '01/14/2016 23:59:59',
     };
 
     this.handleXsNav = this.handleXsNav.bind(this);
@@ -57,7 +60,7 @@ export class Header extends Component {
                                 <div className="checkbox" style={{margin: '2px 0'}}>
                                   <div className="custom-checkbox font-12 no-animation">
                                     <input type="checkbox" name="well1" id="well1" />
-                                    <label htmlFor="well1">Stndard Draw 9-20-18-93</label>
+                                    <label htmlFor="well1">Standard Draw 9-20-18-93</label>
                                   </div>
                                 </div>
                               </div>
@@ -180,10 +183,17 @@ export class Header extends Component {
                     </div>
                   </div>
                   <div className="col-sm-6 b-all b-lr line-dashed m-t-15-xs">
-                    <div className="text-upper">Date Range</div>
+                    <div className="text-upper">Date/Time Range</div>
                     <div className="row m-t-10 font-12">
-                      <div className="col-xs-12">
-                        
+                      <div className="col-sm-6">
+                        <div className="form-group">
+                          <InputElement mask="99/99/9999 99:99:99" value={this.state.startDate} className="form-control" placeholder="Start Date/Time"/>
+                        </div>
+                      </div>
+                      <div className="col-sm-6">
+                        <div className="form-group">
+                          <InputElement mask="99/99/9999 99:99:99" value={this.state.endDate} className="form-control" placeholder="End Date/Time"/>
+                        </div>
                       </div>
                     </div>
                   </div>
