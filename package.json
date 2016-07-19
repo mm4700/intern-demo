@@ -22,6 +22,7 @@
     "test:watch": "npm run test -- --auto-watch --no-single-run"
   },
   "dependencies": {
+    "babel-plugin-transform-object-rest-spread": "^6.8.0",
     "blacklist": "^1.1.2",
     "bluebird": "^2.9.27",
     "chalk": "^1.1.3",

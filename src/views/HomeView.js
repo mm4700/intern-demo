@@ -31,6 +31,10 @@ export default class HomeView extends Component {
     }
   }
 
+  componentDidMount() {
+    //this.drawChart();
+  }
+
   sanitizeData(dataset, m) { 
     m.forEach(d => {
       Object.keys(d).forEach(k => {
@@ -122,6 +126,36 @@ export default class HomeView extends Component {
           linechart.active = active; 
         })
         .text(d => { return d; });
+  }
+
+  drawEventTimeline() {
+    // https://fbe94b5b83362330a8429bb16098a3285147bcbf.googledrive.com/host/0Bz6WHrWac3FrZUtuOExWdlRGVG8//proximitynetwork.html
+  }
+
+  drawSensorPlot() {
+    // http://phatduino.com.w010a51b.kasserver.com/visavail/example.htm
+  }
+
+  drawEdgeCoordinates() {
+    // TODO
+  }
+
+  drawZoomPan() {
+    // TODO
+  }
+
+  drawUncertainity() {
+    // as bounds or banding
+  }
+
+  applyFilters() {
+    // TODO
+  }
+
+  drawRadialMenu() {
+    // Options
+    //  Remove
+    //  Info, Model (shows the distrubution curve), Filter, Report
   }
 
   drawChart() {
@@ -216,7 +250,7 @@ export default class HomeView extends Component {
           return {date: d.date, rateValue: +d.rate};
         })
       };
-    });  
+    });
 
     const clip = svg
       .append('svg:clipPath')
@@ -301,9 +335,8 @@ export default class HomeView extends Component {
         .style('text-anchor', 'end')
         .text('rate');
 
-        
-
     drawMeasurements(el);
+    // TODO -- only show if user selected it, need to customize the look n feel
     drawLegend(el);
   }
 

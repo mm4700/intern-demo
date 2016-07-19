@@ -14,7 +14,6 @@ export class Sidebar extends Component {
 
     this.toggleMenuItem = this.toggleMenuItem.bind(this);
     this.toggleDataset = this.toggleDataset.bind(this);
-    this.toggleFilterPanel = this.toggleFilterPanel.bind(this);
     this.toggleStylesPanel = this.toggleStylesPanel.bind(this);
     this.toggleSettingsPanel = this.toggleSettingsPanel.bind(this);
   }
@@ -46,10 +45,6 @@ export class Sidebar extends Component {
   }
 
   _closeAllPanels(panel) {
-    if (panel !== 'filters') {
-    //document.getElementById('filters-panel').classList.remove('active');
-    }
-
     if (panel !== 'styles') {
       document.getElementById('styles-panel').classList.remove('active');
     }
@@ -57,16 +52,6 @@ export class Sidebar extends Component {
     if (panel !== 'settings') {
       document.getElementById('settings-panel').classList.remove('active');
     }
-  }
-
-  toggleFilterPanel(ev) {
-    ev.preventDefault();
-    
-    this._closeAllPanels('filters');
-    document.getElementById('filters-panel').classList.toggle('active');
-    this.setState({
-      activeTab: document.getElementById('filters-panel').classList.contains('active') ? 'filters' : null
-    });
   }
 
   toggleStylesPanel(ev) {
@@ -120,11 +105,6 @@ export class Sidebar extends Component {
                     </li>
                   </ul>
                 </div>
-              </li>
-              <li className={this.state.activeTab === 'filters' ? 'active' : ''}>
-                <a href="#" onClick={this.toggleFilterPanel}>
-                  <i className="fa fa-filter"></i> <span className="nav-text">Filters</span>
-                </a>
               </li>
               <li className={this.state.activeTab === 'styles' ? 'active' : ''}>
                 <a href="#" onClick={this.toggleStylesPanel}>

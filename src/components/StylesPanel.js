@@ -13,38 +13,63 @@ export class StylesPanel extends Component {
       uncertainity: {
         strokeWidth: 1,
         strokeColor: {
-          r: '241',
-          g: '112',
-          b: '19',
+          r: '226',
+          g: '198',
+          b: '218',
           a: '1',
         },
-        dashArray: null,
+        dashArray: 'none',
         interpolation: 'basis',
       },
       showBounds: true,
       showBand: false,
       uncertainityBounds: {
         strokeWidth: 1,
-        strokeColor: '#fff',
-        dashArray: null,
+        strokeColor: {
+          r: '159',
+          g: '164',
+          b: '123',
+          a: '1',
+        },
+        dashArray: 'none',
         interpolation: 'basis',
       },
       uncertainityBand: {
         strokeWidth: 1,
-        strokeColor: '#fff',
-        dashArray: null,
-        fill: '',
+        strokeColor: {
+          r: '70',
+          g: '80',
+          b: '133',
+          a: '1',
+        },
+        dashArray: 'none',
+        fill: {
+          r: '0',
+          g: '205',
+          b: '161',
+          a: '0.8',
+        },
         interpolation: 'basis',
       },
       measurements: {
         strokeWidth: 1,
-        strokeColor: '#fff',
+        strokeColor: {
+          r: '186',
+          g: '188',
+          b: '148',
+          a: '1',
+        },
         fill: '#fff'
       },
       flowRate: {
         strokeWidth: 1,
-        strokeColor: '#fff',
-        dashArray: null,
+        strokeColor: {
+          r: '146',
+          g: '205',
+          b: '0',
+          a: '1',
+        },
+        dashArray: 'none',
         interpolation: 'basis',
       },
       misc: {
@@ -62,7 +87,6 @@ export class StylesPanel extends Component {
       styles: _.omit(this.state, 'misc')
     });
 
-    console.log('change', parent, setting, color, change);
     this.setState(change);
   }
 
@@ -79,8 +103,6 @@ export class StylesPanel extends Component {
   }
 
   render() {
-    console.log('in render', this.state);
-
     return (
       <aside className="right-sidebar-wrap sidebar-fixed secondary-panel" id="styles-panel">
         <ul className="sidebar-tab list-unstyled clearfix font-header font-11 bg-main">
