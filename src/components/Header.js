@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
-import MaskedInput from 'react-maskedinput';
+import InputElement from 'react-input-mask';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as actionCreators from '../actions';
@@ -66,8 +66,6 @@ export class Header extends Component {
 
   hangleStartDateChange(ev) {
     ev.preventDefault();
-
-    console.log('hangleStartDateChange', this.refs.startDate.value)
 
     const change = _.omit(this.state, 'filters');
     change.startDate = this.refs.startDate.value;
@@ -249,12 +247,12 @@ export class Header extends Component {
                     <div className="row m-t-10 font-12">
                       <div className="col-sm-6">
                         <div className="form-group">
-                          <MaskedInput mask="11/11/1111 11:11:11" ref="startDate" value={this.state.startDate} onChange={this.hangleStartDateChange} className="form-control"/>
+                          <InputElement mask="99/99/9999 99:99:99" ref="startDate" defaultValue={this.state.startDate} onBlur={this.hangleStartDateChange} className="form-control" placeholder="Start Date/Time"/>
                         </div>
                       </div>
                       <div className="col-sm-6">
                         <div className="form-group">
-                          <MaskedInput mask="11/11/1111 11:11:11" ref="endDate" value={this.state.endDate} onChange={this.hangleEndDateChange} className="form-control"/>
+                          <InputElement mask="99/99/9999 99:99:99" ref="endDate" defaultValue={this.state.endDate} onBlur={this.hangleEndDateChange} className="form-control" placeholder="End Date/Time"/>
                         </div>
                       </div>
                       <div className="col-sm-12">

@@ -41,7 +41,7 @@
     "react-addons-update": "^15.0.2",
     "react-color": "^2.2.0",
     "react-dom": "^15.0.1",
-    "react-maskedinput": "^3.2.0",
+    "react-input-mask": "^0.7.2",
     "react-mixin": "^3.0.5",
     "react-overlays": "^0.6.3",
     "react-prop-types": "^0.3.0",
