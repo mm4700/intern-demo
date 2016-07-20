@@ -5,6 +5,19 @@ import * as actionCreators from '../actions';
 import { SketchPicker } from 'react-color';
 import _ from 'lodash';
 
+const dashArraySettings = [
+  '5, 5',
+  '5, 10',
+  '10, 5',
+  '5, 1',
+  '1, 5',
+  '0.9',
+  '15, 10, 5',
+  '15, 10, 5, 10',
+  '15, 10, 5, 10, 15',
+  '5, 5, 1, 5',
+];
+
 export class StylesPanel extends Component {
   constructor(props, context) {
     super(props, context);
@@ -73,9 +86,12 @@ export class StylesPanel extends Component {
         interpolation: 'basis',
       },
       misc: {
-        uncertainityColorPicker: false,
+        colorPicker: false,
+        expanded: null
       }
     };
+
+    this.toggleSection = this.toggleSection.bind(this);
   }
 
   handleColorChange(parent, setting, color) {
@@ -90,19 +106,53 @@ export class StylesPanel extends Component {
     this.setState(change);
   }
 
+  handleChange(parent, setting, event) {
+    const change = {};
+    change[parent] = this.state[parent];
+    change[parent][setting] = _.isString(event) ? event : event.currentTarget.value;
+
+    this.props.actions.configureChart({
+      styles: _.omit(this.state, 'misc')
+    });
+
+    this.setState(change);
+  }
+
   handleClick(setting) {
     const change = this.state.misc;
-    change[setting + 'ColorPicker'] = !this.state.misc[setting + 'ColorPicker'];
+    change.colorPicker = !this.state.misc.colorPicker;
     this.setState({ misc: change });
   }
 
   handleClose(setting) {
     const change = this.state.misc;
-    change[setting + 'ColorPicker'] = false;
+    change.colorPicker = false;
     this.setState({ misc: change });
   }
 
+  toggleSection(section, ev) {
+    ev.preventDefault();
+
+    const val = this.state.misc.expanded === section ? null : section;
+    this.setState({
+      misc: _.merge(this.state.misc, { expanded: val, colorPicker: false })
+    });
+  }
+
   render() {
+    let index;
+    let highlight;
+    if (this.state.misc.expanded !== null) {
+      index = dashArraySettings.indexOf(this.state[this.state.misc.expanded].dashArray);
+      if (index === -1) {
+        index = 0;
+      } else {
+        index++;
+      }
+
+      highlight = <rect x="0" y={'' + (20 * index)}  width="210" height="20" style={{fill: 'rgba(198, 203, 215, 0.29)'}}></rect>;
+    }
+
     return (
       <aside className="right-sidebar-wrap sidebar-fixed secondary-panel" id="styles-panel">
         <ul className="sidebar-tab list-unstyled clearfix font-header font-11 bg-main">
@@ -114,20 +164,22 @@ export class StylesPanel extends Component {
           <div className="sidenav-inner" style={{overflow: 'hidden', width: 'auto', height: '100%'}}>
             <div className="list-group font-12">
               <div className="list-group-item styles">
-                <i className="fa fa-caret-down"></i> Measured Well Head Pressure
-                <hr style={{margin: '5px 0'}}/>
-                <div style={{marginTop: '15px', marginLeft: '12px'}}>
+                <a href="#" onClick={(ev) => this.toggleSection('uncertainity', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
+                  <i className={'fa ' + (this.state.misc.expanded === 'uncertainity' ? 'fa-caret-down' : 'fa-caret-right')}></i> Estimated Well Head Pressure
+                </a>
+                <hr style={{margin: '5px 0', border: 0}}/>
+                <div style={{marginTop: '15px', marginLeft: '12px', display: (this.state.misc.expanded === 'uncertainity') ? 'block' : 'none'}}>
                   <form className="font-12">
                     <div className="form-group">
                       <label htmlFor="a1">Stroke Width</label>
-                      <input type="email" className="form-control" id="a1" style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}} />
+                      <input type="number" className="form-control" value={this.state.uncertainity.strokeWidth} onChange={(ev) => this.handleChange('uncertainity', 'strokeWidth', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}} />
                     </div>
                     <div className="form-group">
                       <label htmlFor="a2">Stroke Color</label>
                       <div className="styles swatch" style={{width: '46px', display: 'block'}} onClick={() => this.handleClick.call(this, 'uncertainity') }>
                         <div className="styles color" style={{background: `rgba(${ this.state.uncertainity.strokeColor.r }, ${ this.state.uncertainity.strokeColor.g }, ${ this.state.uncertainity.strokeColor.b }, ${ this.state.uncertainity.strokeColor.a })`}}/>
                       </div>
-                      { this.state.misc.uncertainityColorPicker ?
+                      { this.state.misc.colorPicker ?
                         <div className="styles popv">
                           <div className="styles cover" onClick={() => this.handleClose.call(this, 'uncertainity') } />
                           <SketchPicker color={ this.state.uncertainity.strokeColor } onChange={(color) => this.handleColorChange.call(this, 'uncertainity', 'strokeColor', color) } />
@@ -136,22 +188,17 @@ export class StylesPanel extends Component {
                     </div>
                     <div className="form-group">
                       <label htmlFor="a3">Dashed</label>
-                      <svg width="200" height="200" viewPort="0 0 200 300" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                        <line strokeDasharray="5, 5"              x1="10" y1="10" x2="190" y2="10" style={{stroke: 'white', strokeWidth: 2}}/>
-                        <line strokeDasharray="5, 10"             x1="10" y1="30" x2="190" y2="30" style={{stroke: 'white', strokeWidth: 2}}/>
-                        <line strokeDasharray="10, 5"             x1="10" y1="50" x2="190" y2="50" style={{stroke: 'white', strokeWidth: 2}}/>
-                        <line strokeDasharray="5, 1"              x1="10" y1="70" x2="190" y2="70" style={{stroke: 'white', strokeWidth: 2}}/>
-                        <line strokeDasharray="1, 5"              x1="10" y1="90" x2="190" y2="90" style={{stroke: 'white', strokeWidth: 2}}/>
-                        <line strokeDasharray="0.9"               x1="10" y1="110" x2="190" y2="110" style={{stroke: 'white', strokeWidth: 2}}/>
-                        <line strokeDasharray="15, 10, 5"         x1="10" y1="130" x2="190" y2="130" style={{stroke: 'white', strokeWidth: 2}}/>
-                        <line strokeDasharray="15, 10, 5, 10"     x1="10" y1="150" x2="190" y2="150" style={{stroke: 'white', strokeWidth: 2}}/>
-                        <line strokeDasharray="15, 10, 5, 10, 15" x1="10" y1="170" x2="190" y2="170" style={{stroke: 'white', strokeWidth: 2}}/>
-                        <line strokeDasharray="5, 5, 1, 5"        x1="10" y1="190" x2="190" y2="190" style={{stroke: 'white', strokeWidth: 2}}/>
+                      <svg width="200" height="200">
+                        {highlight}
+                        <line onClick={(ev) => this.handleChange('uncertainity', 'dashArray', 'none')} x1="10" y1="10" x2="190" y2="10" style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
+                        {dashArraySettings.map((d, i) => {
+                          return <line key={'dash-' + i} onClick={(ev) => this.handleChange('uncertainity', 'dashArray', d)} strokeDasharray={d} x1="10" y1={'' + (10 + (20 * (i+1)))} x2="190" y2={'' + (10 + (20 * (i+1)))} style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
+                        })}
                       </svg>
                     </div>
                     <div className="form-group">
-                      <label htmlFor="a4">Interpolation</label>
-                      <select className="form-control" style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}}>
+                      <label>Interpolation</label>
+                      <select className="form-control" value={this.state.uncertainity.interpolation} onChange={(ev) => this.handleChange('uncertainity', 'interpolation', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}}>
                         <option value="linear">Use piecewise linear segments</option>
                         <option value="step-before">Alternate between vertical and horizontal segments</option>
                         <option value="step-after">Alternate between horizontal and vertical segments</option>
@@ -162,20 +209,67 @@ export class StylesPanel extends Component {
                 </div>
               </div>
               <div className="list-group-item styles">
-                Estimated Well Head Pressure
-                <hr style={{margin: '5px 0'}}/>
+                <a href="#" onClick={(ev) => this.toggleSection('uncertainityBounds', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
+                  <i className={'fa ' + (this.state.misc.expanded === 'uncertainityBounds' ? 'fa-caret-down' : 'fa-caret-right')}></i> Estimated Well Head Pressure Uncertainity Bounds
+                </a>
+                <hr style={{margin: '5px 0', border: 0}}/>
               </div>
               <div className="list-group-item styles">
-                Estimated Well Head Pressure Upper Bound
-                <hr style={{margin: '5px 0'}}/>
+                <a href="#" onClick={(ev) => this.toggleSection('uncertainityBand', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
+                  <i className={'fa ' + (this.state.misc.expanded === 'uncertainityBand' ? 'fa-caret-down' : 'fa-caret-right')}></i> Estimated Well Head Pressure Uncertainity Band
+                </a>
+                <hr style={{margin: '5px 0', border: 0}}/>
               </div>
               <div className="list-group-item styles">
-                Estimated Well Head Pressure Lower Bound
-                <hr style={{margin: '5px 0'}}/>
+                <a href="#" onClick={(ev) => this.toggleSection('pressure', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
+                  <i className={'fa ' + (this.state.misc.expanded === 'pressure' ? 'fa-caret-down' : 'fa-caret-right')}></i> Pressure Readings
+                </a>
+                <hr style={{margin: '5px 0', border: 0}}/>
               </div>
               <div className="list-group-item styles">
-                Flow Rate
-                <hr style={{margin: '5px 0'}}/>
+                <a href="#" onClick={(ev) => this.toggleSection('flowRate', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
+                  <i className={'fa ' + (this.state.misc.expanded === 'flowRate' ? 'fa-caret-down' : 'fa-caret-right')}></i> Flow Rate
+                </a>
+                <hr style={{margin: '5px 0', border: 0}}/>
+                <div style={{marginTop: '15px', marginLeft: '12px', display: (this.state.misc.expanded === 'flowRate') ? 'block' : 'none'}}>
+                  <form className="font-12">
+                    <div className="form-group">
+                      <label htmlFor="a1">Stroke Width</label>
+                      <input type="number" className="form-control" value={this.state.flowRate.strokeWidth} onChange={(ev) => this.handleChange('flowRate', 'strokeWidth', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}} />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="a2">Stroke Color</label>
+                      <div className="styles swatch" style={{width: '46px', display: 'block'}} onClick={() => this.handleClick.call(this, 'flowRate') }>
+                        <div className="styles color" style={{background: `rgba(${ this.state.flowRate.strokeColor.r }, ${ this.state.flowRate.strokeColor.g }, ${ this.state.flowRate.strokeColor.b }, ${ this.state.flowRate.strokeColor.a })`}}/>
+                      </div>
+                      { this.state.misc.colorPicker ?
+                        <div className="styles popv">
+                          <div className="styles cover" onClick={() => this.handleClose.call(this, 'flowRate') } />
+                          <SketchPicker color={ this.state.flowRate.strokeColor } onChange={(color) => this.handleColorChange.call(this, 'flowRate', 'strokeColor', color) } />
+                        </div>
+                        : null }
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="a3">Dashed</label>
+                      <svg width="200" height="200">
+                        {highlight}
+                        <line onClick={(ev) => this.handleChange('flowRate', 'dashArray', 'none')} x1="10" y1="10" x2="190" y2="10" style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
+                        {dashArraySettings.map((d, i) => {
+                          return <line onClick={(ev) => this.handleChange('flowRate', 'dashArray', d)} strokeDasharray={d} x1="10" y1={'' + (10 + (20 * (i+1)))} x2="190" y2={'' + (10 + (20 * (i+1)))} style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
+                        })}
+                      </svg>
+                    </div>
+                    <div className="form-group">
+                      <label>Interpolation</label>
+                      <select className="form-control" value={this.state.flowRate.interpolation} onChange={(ev) => this.handleChange('flowRate', 'interpolation', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}}>
+                        <option value="linear">Use piecewise linear segments</option>
+                        <option value="step-before">Alternate between vertical and horizontal segments</option>
+                        <option value="step-after">Alternate between horizontal and vertical segments</option>
+                        <option value="basis">Use a B-spline</option>
+                      </select>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
           </div>
