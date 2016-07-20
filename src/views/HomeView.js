@@ -12,9 +12,9 @@ export default class HomeView extends Component {
   }
 
   componentWillMount() {
-    this.props.actions.fetchUncertainityData();
-    this.props.actions.fetchMeasurementsData();
-    this.props.actions.fetchRatesData();
+    this.props.actions.fetchUncertainityData(chart.filters);
+    this.props.actions.fetchMeasurementsData(chart.filters);
+    this.props.actions.fetchRatesData(chart.filters);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -40,15 +40,11 @@ export default class HomeView extends Component {
       Object.keys(d).forEach(k => {
         if (k === 'dateHour') {
           d.date = parseDate.parse(d.dateHour);
-        }
-        else {
+        } else {
           d[k] = +d[k];
         }
       });
     });
-
-    m.minDate = m[0].date;
-    m.maxDate = m[m.length - 1].date;
 
     const datasetState = {};
     datasetState[dataset] = m;
@@ -178,10 +174,13 @@ export default class HomeView extends Component {
       }
     });
 
-    const colorsArray = ['#E2C6DA', '#9FA47B', '#BABC94', '#CBCB47', '#ECF370', '#EADD2C', '#92CD00'];
+    //const colorsArray = ['#E2C6DA', '#9FA47B', '#BABC94', '#CBCB47', '#ECF370', '#EADD2C', '#92CD00'];
 
+    // convert dates
+    const minDate = moment(chart.filters.startDate, '');
+    const maxDate = moment(chart.filters.endDate, '');
     const x = d3.time.scale()
-      .domain([mydata.minDate, mydata.maxDate]) // TODO
+      .domain([minDate, maxDate])
       .range([0, width]);
     
     const y = d3.scale.linear().range([height, 0])

@@ -30,10 +30,10 @@ export function fetchUncertainityDataRequest() {
   };
 }
 
-export function fetchUncertainityData() {
+export function fetchUncertainityData(opts) {
   return (dispatch, state) => {
     dispatch(fetchUncertainityDataRequest());
-    return fetch('http://localhost:5000/assets/data/uncertainity.csv')
+    return fetch('http://localhost:5001/api/v1/uncertainity?well=' + opts.well + '&startDate=' + opts.startDate + '&endDate=' + opts.endDate + '&aggregation=' + opts.aggregation + '&grouping=' + opts.grouping)
       .then(checkHttpStatus)
       .then(response => {
         dispatch(receiveUncertainityData(response.data));
@@ -60,10 +60,10 @@ export function fetchMeasurementsDataRequest() {
   };
 }
 
-export function fetchMeasurementsData() {
+export function fetchMeasurementsData(opts) {
   return (dispatch, state) => {
     dispatch(fetchMeasurementsDataRequest());
-    return fetch('http://localhost:5000/assets/data/measurements.csv')
+    return fetch('http://localhost:5001/api/v1/measurements?well=' + opts.well + '&startDate=' + opts.startDate + '&endDate=' + opts.endDate + '&aggregation=' + opts.aggregation + '&grouping=' + opts.grouping)
       .then(checkHttpStatus)
       .then(response => {
         dispatch(receiveMeasurementsData(response.data));
@@ -90,10 +90,10 @@ export function fetchRatesDataRequest() {
   };
 }
 
-export function fetchRatesData() {
+export function fetchRatesData(opts) {
   return (dispatch, state) => {
     dispatch(fetchRatesDataRequest());
-    return fetch('http://localhost:5000/assets/data/rates.csv')
+    return fetch('http://localhost:5001/api/v1/flowrates?well=' + opts.well + '&startDate=' + opts.startDate + '&endDate=' + opts.endDate + '&aggregation=' + opts.aggregation + '&grouping=' + opts.grouping)
       .then(checkHttpStatus)
       .then(response => {
         dispatch(receiveRatesData(response.data));
