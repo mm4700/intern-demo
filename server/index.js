@@ -36,6 +36,7 @@ app.use(require('compression')()); // gzip
 app.use('/', express.static('build'));
 
 app.post('/api/v1/uncertainity', function(req, res) {
+  // handle datasets as well
   db.uncertainity.find({
     well: req.query.well,
     dateHour : {

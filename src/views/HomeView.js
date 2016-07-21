@@ -12,22 +12,12 @@ export default class HomeView extends Component {
   }
 
   componentWillMount() {
-    this.props.actions.fetchUncertainityData(chart.filters);
-    this.props.actions.fetchMeasurementsData(chart.filters);
-    this.props.actions.fetchRatesData(chart.filters);
+    this.props.actions.fetchData(this.props.chart); // [datasets]
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.uncertainityData) {
       this.sanitizeData('uncertainityData', nextProps.uncertainityData);
-    }
-
-    if (nextProps.measurementsData) {
-      this.sanitizeData('measurementsData', nextProps.measurementsData);
-    }
-
-    if (nextProps.ratesData) {
-      this.sanitizeData('ratesData', nextProps.ratesData);
     }
   }
 

@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
 import { connect } from 'react-redux';
@@ -10,9 +11,11 @@ export class Sidebar extends Component {
 
     this.state = {
       activeTab: null,
-      uncertainity: true,
-      measurements: true,
-      rates: true,
+      bhp: true,
+      whp: true,
+      bht: true,
+      wht: true,
+      q: true,
     };
 
     this.toggleMenuItem = this.toggleMenuItem.bind(this);
@@ -33,23 +36,14 @@ export class Sidebar extends Component {
   toggleDataset(dataset, ev) {
     ev.preventDefault();
 
-    console.log('toggleDataset', dataset);
-
     const changeState = {};
     changeState[dataset] = !this.state[dataset];
 
-    console.log('toggleDataset', changeState);
-
     this.props.actions.configureChart({
-      opdatasets: {
-        uncertainity: this.state['uncertainity'],
-        measurements: this.state['measurements'],
-        rates: this.state['rates'],
-      }
+      opdatasets: _.omit(this.state, 'activeTab')
     });
 
     this.setState(changeState);
-    console.log('toggleDataset', this.state);
   }
 
   _closeAllPanels(panel) {
@@ -102,14 +96,20 @@ export class Sidebar extends Component {
                 </a>
                 <div className={`sub-menu collapse secondary list-style-circle ${(this.state.activeTab === 'opdatasets' ? 'in' : '')}`}>
                   <ul>
-                    <li className={this.state.uncertainity ? 'active' : ''}>
-                      <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('uncertainity', ev)}>Uncertainity</a>
+                    <li className={this.state.bhp ? 'active' : ''}>
+                      <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('bhp', ev)}>Bore Hole Pressure</a>
                     </li>
-                    <li className={this.state.measurements ? 'active' : ''}>
-                      <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('measurements', ev)}>Measurements</a>
+                    <li className={this.state.bhp ? 'active' : ''}>
+                      <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('whp', ev)}>Well Head Pressure</a>
                     </li>
-                    <li className={this.state.rates ? 'active' : ''}>
-                      <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('rates', ev)}>Flow Rate</a>
+                    <li className={this.state.bhp ? 'active' : ''}>
+                      <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('bht', ev)}>Bore Hole Temperature</a>
+                    </li>
+                    <li className={this.state.bhp ? 'active' : ''}>
+                      <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('wht', ev)}>Well Head Temperature</a>
+                    </li>
+                    <li className={this.state.bhp ? 'active' : ''}>
+                      <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('q', ev)}>Flow Rate</a>
                     </li>
                   </ul>
                 </div>

@@ -1,7 +1,3 @@
-export const FETCH_UNCERTAINITY_DATA_REQUEST = 1;
-export const RECEIVE_UNCERTAINITY_DATA = 2;
-export const FETCH_MEASUREMENTS_DATA_REQUEST = 3;
-export const RECEIVE_MEASUREMENTS_DATA = 4;
-export const FETCH_RATES_DATA_REQUEST = 5;
-export const RECEIVE_RATES_DATA = 6;
-export const CONFIGURE_CHART = 7;
+export const FETCH_DATA_REQUEST = 1;
+export const RECEIVE_DATA = 2;
+export const CONFIGURE_CHART = 3;

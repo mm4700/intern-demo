@@ -22,24 +22,25 @@ var url = 'mongodb://localhost:27017/demo';
 var chance = new Chance();
 
 var startDate = moment({ years: 2015, months: 0, days: 0, hours: 0, minutes: 0 });
-var endDate = moment({ years: 2015, months: 11, days: 31, hours: 23, minutes: 59 });
+var endDate = moment({ years: 2015, months: 0, days: 31, hours: 23, minutes: 59 });
 
 MongoClient.connect(url, function(err, db) {
-  var uc = db.collection('uncertainity');
-  var mc = db.collection('measurements');
-  var frc = db.collection('flowrates');
+  var avv = db.collection('datasets');
   var ec = db.collection('events');
-  uc.remove({});
-  mc.remove({});
-  frc.remove({});
-  ec.remove({});
+  //avv.remove({});
+  //ec.remove({});
 
-  _.each(_.range(wells.length), function(i) {
+  _.each(_.range(1), function(i) {
     console.log('Well : ' + wells[i]);
 
     var currentDate = moment(startDate);
-    var nextSensor = null;
-    var nextRate = null;
+    var nextSensor = {
+      'Bore Hole Pressure': null,
+      'Well Head Pressure': null,
+      'Bore Hole Temperature': null,
+      'Well Head Temperature': null,
+      'Q': null
+    };
     var nextEvent = null;
 
     var eventTypes = [
@@ -68,71 +69,96 @@ MongoClient.connect(url, function(err, db) {
       else if (nextEvent === null || currentDate.isAfter(nextEvent)) {
         nextEvent = null;
 
-        var uncertainity = {};
-        var measurements = [];
-        var flowrate = {};
-        uncertainity.wellIndex = i;
-        uncertainity.well = wells[i];
-        uncertainity.dateHour = currentDate.toDate();
-        var u = chance.floating({ min: 24, max: 76, fixed: 2 });
-        var ll = chance.floating({ min: 0, max: 24, fixed: 2 });
-        uncertainity.estPressure = u; // chance value?
-        uncertainity.upPressure = u + ll;
-        uncertainity.lowPressure = u - ll;
-        uc.insert(uncertainity);
+        _.each(['Bore Hole Pressure', 'Well Head Pressure', 'Bore Hole Temperature', 'Well Head Temperature', 'Q'], function(fre) {
+          var uncertainity = {};
+          uncertainity.wellIndex = i;
+          uncertainity.well = wells[i];
+          uncertainity.type = 'estimate';
+          uncertainity.sensor = fre;
+          uncertainity.dateHour = currentDate.toDate();
+          if (fre === 'Bore Hole Pressure') {
+            var u = chance.floating({ min: 24, max: 52, fixed: 2 });
+            var ll = chance.floating({ min: 0, max: 24, fixed: 2 });
+            uncertainity.est = u; // chance value?
+            uncertainity.up = u + ll;
+            uncertainity.low = u - ll;
+            uncertainity.measurement = chance.floating({ min: 24, max: 52, fixed: 2 });
+          }
+          else if (fre === 'Well Head Pressure') {
+            var u = chance.floating({ min: 52, max: 90, fixed: 2 });
+            var ll = chance.floating({ min: 0, max: 10, fixed: 2 });
+            uncertainity.est = u; // chance value?
+            uncertainity.up = u + ll;
+            uncertainity.low = u - ll;
+            uncertainity.measurement = chance.floating({ min: 52, max: 90, fixed: 2 });
+          }
+          else if (fre === 'Bore Hole Temperature') {
+            var u = chance.floating({ min: 0, max: 35, fixed: 2 });
+            var ll = chance.floating({ min: 0, max: 10, fixed: 2 });
+            uncertainity.est = u; // chance value?
+            uncertainity.up = u + ll;
+            uncertainity.low = u - ll;
+            uncertainity.measurement = chance.floating({ min: 0, max: 35, fixed: 2 });
+          }
+          else if (fre === 'Well Head Temperature') {
+            var u = chance.floating({ min: 35, max: 50, fixed: 2 });
+            var ll = chance.floating({ min: 0, max: 5, fixed: 2 });
+            uncertainity.est = u; // chance value?
+            uncertainity.up = u + ll;
+            uncertainity.low = u - ll;
+            uncertainity.measurement = chance.floating({ min: 35, max: 50, fixed: 2 });
+          }
+          else if (fre === 'Q') {
+            var u = chance.floating({ min: 250, max: 600, fixed: 2 });
+            var ll = chance.floating({ min: 0, max: 50, fixed: 2 });
+            uncertainity.est = u; // chance value?
+            uncertainity.up = u + ll;
+            uncertainity.low = u - ll;
+            uncertainity.measurement = chance.floating({ min: 250, max: 600, fixed: 2 });
+          }
 
-        // sensor data was available
-        if ((nextSensor === null || (nextSensor.isBefore(currentDate) || nextSensor.isSame(currentDate))) && chance.bool({likelihood: 90})) {
-          nextSensor = null;
+          // sensor data was available
+          if ((nextSensor[fre] === null || (nextSensor[fre].isBefore(currentDate) || nextSensor[fre].isSame(currentDate))) && chance.bool({likelihood: 90})) {
+            nextSensor[fre] = null;
 
-          var mm = {};
-          mm.wellIndex = i;
-          mm.well = wells[i];
-          mm.dateHour = currentDate.toDate();
-          var qty = chance.integer({ min: 1, max: 35 });
-          _.each(_.range(qty), function(n) {
-            var other = _.clone(mm);
-            other.pressure = chance.floating({ min: 0, max: 100, fixed: 2 });
-            var uf = chance.weighted([
-              chance.floating({min: 0, max: 10, fixed: 2}),
-              chance.floating({min: 10, max: 20, fixed: 2}),
-              chance.floating({min: 20, max: 30, fixed: 2}),
-              chance.floating({min: 30, max: 40, fixed: 2}),
-              chance.floating({min: 40, max: 50, fixed: 2}),
-              chance.floating({min: 50, max: 60, fixed: 2}),
-              chance.floating({min: 60, max: 70, fixed: 2}),
-              chance.floating({min: 70, max: 80, fixed: 2}),
-              chance.floating({min: 80, max: 90, fixed: 2}),
-              chance.floating({min: 90, max: 100, fixed: 2})
-            ], [1000000000, 100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1]);
-            other.uncertainity = uf;
-            mc.insert(other);
-          });
-        }
-        else {
-          // sensor data can be offline for up to 3 days max, minimum is 1 minute offline
-          nextSensor = moment(currentDate);
-          var o = chance.weighted([chance.integer({min: 1, max: 10}), chance.integer({min: 10, max: 6 * 60}), chance.integer({min: (6 * 60) + 1, max: 24 * 60}), chance.integer({min: 24 * 60, max: 3 * 24 * 60})], [100, 75, 5, 1]);
-          nextSensor.add(o, 'minutes');
-        }
+            var mm = {};
+            mm.wellIndex = i;
+            mm.well = wells[i];
+            mm.dateHour = currentDate.toDate();
+            mm.type = 'measurement';
+            mm.sensor = fre;
+            var qty = chance.integer({ min: 1, max: 35 });
+            _.each(_.range(qty), function(n) {
+              var other = _.clone(mm);
+              other.pressure = chance.floating({ min: 0, max: 100, fixed: 2 });
+              var uf = chance.weighted([
+                chance.floating({min: 0, max: 10, fixed: 2}),
+                chance.floating({min: 10, max: 20, fixed: 2}),
+                chance.floating({min: 20, max: 30, fixed: 2}),
+                chance.floating({min: 30, max: 40, fixed: 2}),
+                chance.floating({min: 40, max: 50, fixed: 2}),
+                chance.floating({min: 50, max: 60, fixed: 2}),
+                chance.floating({min: 60, max: 70, fixed: 2}),
+                chance.floating({min: 70, max: 80, fixed: 2}),
+                chance.floating({min: 80, max: 90, fixed: 2}),
+                chance.floating({min: 90, max: 100, fixed: 2})
+              ], [1000000000, 100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1]);
+              other.uncertainity = uf;
+              avv.insert(other);
+            });
+          }
+          else {
+            // sensor data can be offline for up to 3 days max, minimum is 1 minute offline
+            nextSensor[fre] = moment(currentDate);
+            var o = chance.weighted([chance.integer({min: 1, max: 10}), chance.integer({min: 10, max: 6 * 60}), chance.integer({min: (6 * 60) + 1, max: 24 * 60}), chance.integer({min: 24 * 60, max: 3 * 24 * 60})], [100, 75, 5, 1]);
+            nextSensor[fre].add(o, 'minutes');
+          
+            delete uncertainity.measurement;
+          }
 
-        // sensor data was available for flow rate
-        if ((nextRate === null || (nextRate.isBefore(currentDate) || nextRate.isSame(currentDate))) && chance.bool({likelihood: 90})) {
-          nextRate = null;
-
-          var ff = {};
-          ff.wellIndex = i;
-          ff.well = wells[i];
-          ff.dateHour = currentDate.toDate();
-          ff.rate = chance.floating({ min: 250, max: 600, fixed: 2 });
-          frc.insert(ff);
-        }
-        else {
-          // sensor data can be offline for up to 3 days max, minimum is 1 minute offline
-          nextRate = moment(currentDate);
-          var o = chance.weighted([chance.integer({min: 1, max: 10}), chance.integer({min: 10, max: 6 * 60}), chance.integer({min: (6 * 60) + 1, max: 24 * 60}), chance.integer({min: 24 * 60, max: 3 * 24 * 60})], [100, 75, 5, 1]);
-          nextRate.add(o, 'minutes');
-        }
+          //console.log('aaa', uncertainity);
+          avv.insert(uncertainity);
+        });
       }
 
       currentDate.add(1, 'minutes');
@@ -140,4 +166,7 @@ MongoClient.connect(url, function(err, db) {
   });
 
   db.close();
+  setTimeout(function() {
+    process.exit(0);
+  }, 30000);
 });

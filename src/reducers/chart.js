@@ -7,15 +7,18 @@ import {
 const initialState = {
   configuration: {
     opdatasets: {
-      uncertainity: true,
-      measurements: true,
-      rates: true,
+      bhp: true,
+      whp: true,
+      bht: true,
+      wht: true,
+      q: true,
     },
     filters: {
       startDate: '01/01/2016 00:00:00',
-      endDate: '01/14/2016 23:59:59',
-      wells: [true, true, true, true, true, true, true, true, true, true],
-      aggregate: 'daily',
+      endDate: '12/31/2016 23:59:59',
+      well: 'Standard Draw 9-20-18-93',
+      grouping: 'daily',
+      aggregate: 'avg',
     },
     styles: {
       uncertainity: {
