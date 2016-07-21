@@ -19,9 +19,7 @@ var url = 'mongodb://localhost:27017/demo';
 
 var db = {};
 MongoClient.connect(url, function(err, _db) {
-  db.uncertainity = _db.collection('uncertainity');
-  db.measurements = _db.collection('measurements');
-  db.flowrates = _db.collection('flowrates');
+  db.datasets = _db.collection('datasets');
   db.events = _db.collection('events');
 });
 
@@ -35,10 +33,12 @@ app.use(cors());
 app.use(require('compression')()); // gzip
 app.use('/', express.static('build'));
 
-app.post('/api/v1/uncertainity', function(req, res) {
+app.post('/api/v1/data', function(req, res) {
   // handle datasets as well
-  db.uncertainity.find({
+  db.datasets.find({
     well: req.query.well,
+    type: 'estimate',
+    sensor: req.query.sensor,
     dateHour : {
       '$gte' : { '$date' : req.query.startDate },
       '$lte' : { '$date' : req.query.endDate }
