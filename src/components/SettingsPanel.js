@@ -47,7 +47,7 @@ export class SettingsPanel extends Component {
                 <label className="col-xs-12 col-sm-5" style={{height: '20px',padding: 0,fontSize: '12px',marginBottom: 0,lineHeight: '20px'}}>Stack Charts</label>
                 <label className="switch-toggle col-xs-7" style={{display: 'block'}}>
                   <input type="checkbox" name="stackCharts" id="stackCharts" checked={this.state.stackCharts} onChange={this.handleSettingChange} />
-                  <span></span>
+                  <span style={{background: 'rgba(255, 255, 255, 0.37)', boxShadow: 'inset 0 0 0 .0625em rgba(228, 238, 240, 0)'}}></span>
                 </label>
               </div>
             </div>
