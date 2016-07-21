@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { createReducer } from '../utils';
 import {
   RECEIVE_DATA,
@@ -5,16 +6,21 @@ import {
 } from '../constants';
 
 const initialState = {
-  data: null,
+  data: {},
   isFetching: false
 };
 
 export default createReducer(initialState, {
   [RECEIVE_DATA]: (state, payload) => {
-    return Object.assign({}, state, {
-      'data': payload.data,
-      'isFetching': false
+    let newData = Object.assign({}, state);
+    newData.isFetching = false;
+    console.log('newData', newData);
+    Object.keys(payload.data).forEach(k => {
+      newData.data[k] = payload.data[k];
     });
+    console.log('newData', newData);
+
+    return newData;
   },
   [FETCH_DATA_REQUEST]: (state, payload) => {
     return Object.assign({}, state, {

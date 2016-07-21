@@ -11,6 +11,7 @@ export class Sidebar extends Component {
 
     this.state = {
       activeTab: null,
+      rp: true,
       bhp: true,
       whp: true,
       bht: true,
@@ -83,7 +84,7 @@ export class Sidebar extends Component {
           <div className="sidenav-inner" style={{overflow: 'hidden', width: 'auto', height: '100%'}}>
             <ul className="side-nav magic-nav">
               <li className="side-nav-header">
-                Controls
+                Customize
                 <small>
                   <a href="#" className="animated rubberBand">
                     <i className="fa fa-sliders fa-lg"></i>
@@ -96,6 +97,9 @@ export class Sidebar extends Component {
                 </a>
                 <div className={`sub-menu collapse secondary list-style-circle ${(this.state.activeTab === 'opdatasets' ? 'in' : '')}`}>
                   <ul>
+                    <li className={this.state.rp ? 'active' : ''}>
+                      <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('rp', ev)}>Reservoir Pressure</a>
+                    </li>
                     <li className={this.state.bhp ? 'active' : ''}>
                       <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('bhp', ev)}>Bore Hole Pressure</a>
                     </li>

@@ -8,37 +8,23 @@ const parseDate = d3.time.format('%e/%-m/%Y %H');
 
 export default class HomeView extends Component {
   constructor(props, context) {
-    super(props, context)
+    super(props, context);
+
+    this.state = {
+      data: []
+    };
   }
 
   componentWillMount() {
-    this.props.actions.fetchData(this.props.chart); // [datasets]
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.uncertainityData) {
-      this.sanitizeData('uncertainityData', nextProps.uncertainityData);
-    }
+    Object.keys(this.props.chart.opdatasets).map(k => {
+      if (this.props.chart.opdatasets[k]) {
+        this.props.actions.fetchData(k, this.props.chart);
+      }
+    });
   }
 
   componentDidMount() {
     //this.drawChart();
-  }
-
-  sanitizeData(dataset, m) { 
-    m.forEach(d => {
-      Object.keys(d).forEach(k => {
-        if (k === 'dateHour') {
-          d.date = parseDate.parse(d.dateHour);
-        } else {
-          d[k] = +d[k];
-        }
-      });
-    });
-
-    const datasetState = {};
-    datasetState[dataset] = m;
-    this.setState(datasetState);
   }
 
   drawMeasurements() {
@@ -145,203 +131,157 @@ export default class HomeView extends Component {
   }
 
   drawChart() {
-    const el = document.getElementById('content');
-
-    // change based on whether legend is shown? whethever event timeline is shown?
     const margin = { top: 10, right: 55, bottom: 100, left: 40 };
-    const width = document.getElementById('content').clientWidth - margin.left - margin.right;
-    const height = (document.getElementById('content').clientHeight - 100) - margin.top - margin.bottom;
+
+    if (this.props.chart.settings.stackCharts) {
+      const el = document.getElementById('chart-container');
+
+      /*let headingsArray = [];
+      Object.keys(this.props.chart.opdatasets).forEach(k => {
+        if (this.props.chart.opdatasets[k]) {
+          headingsArray = headingsArray.concat(Object.keys(this.state[k + 'Data'][0]).filter(d => d !== 'date'));
+        }
+      });*/
+    }
+    else {
+      charts = Object.keys(this.props.chart.opdatasets).map(k => {
+        if (this.props.chart.opdatasets[k]) {
+          const el = document.getElementById(`${k}-chart`);
+          const width = el.clientWidth - margin.left - margin.right;
+          const height = el.clientHeight - margin.top - margin.bottom;
     
-    const svg = d3.select(el)
-      .append('svg')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom);
+          const svg = d3.select(el)
+            .append('svg')
+              .attr('width', width + margin.left + margin.right)
+              .attr('height', height + margin.top + margin.bottom);
 
-    let headingsArray = [];
-    Object.keys(this.props.chart.opdatasets).forEach(k => {
-      if (this.props.chart.opdatasets[k]) {
-        headingsArray = headingsArray.concat(Object.keys(this.state[k + 'Data'][0]).filter(d => d !== 'date'));
-      }
-    });
+          const minDate = new Date(moment(this.props.chart.filters.startDate, 'MM/DD/YYYY HH:mm').valueOf());
+          const maxDate = new Date(moment(this.props.chart.filters.endDate, 'MM/DD/YYYY HH:mm').valueOf());
+          const x = d3.time.scale()
+            .domain([minDate, maxDate])
+            .range([0, width]);
+          
+          const y = d3.scale.linear().range([height, 0])
+            .domain([10, d3.max(mydata.data1.map(d => { return d.upPressure1; }))]); // TODO
 
-    //const colorsArray = ['#E2C6DA', '#9FA47B', '#BABC94', '#CBCB47', '#ECF370', '#EADD2C', '#92CD00'];
+          const xAxis = d3.svg.axis()
+            .scale(x)
+            .orient('bottom')
+            .tickFormat(d3.time.format('%e/%-m %H')); // @TODO -- Multi Time Formats
 
-    // convert dates
-    const minDate = moment(chart.filters.startDate, '');
-    const maxDate = moment(chart.filters.endDate, '');
-    const x = d3.time.scale()
-      .domain([minDate, maxDate])
-      .range([0, width]);
-    
-    const y = d3.scale.linear().range([height, 0])
-      .domain([10, d3.max(mydata.data1.map(d => { return d.upPressure1; }))]); // TODO
+          const yAxis = d3.svg.axis()
+            .scale(y)
+            .orient('left');
 
-    const y1 = d3.scale.linear().range([height, 0])
-      .domain([500, d3.max(mydata.data3.map(d => { return d.rate; }))]); // TODO
+          const tooltip = d3.select(el)
+            .append('div')
+              .attr('class', 'tooltip')
+              .style('opacity', 0);
 
-    const xAxis = d3.svg.axis()
-      .scale(x)
-      .orient('bottom')
-      .tickFormat(d3.time.format('%e/%-m %H')); // @TODO -- Multi Time Formats
+          const line = d3.svg.line()
+            .interpolate('basis')
+            .x(d => {
+              return x(d.date);
+            })
+            .y(d => {
+              return y(d.pressureValue);
+            });
 
-    const yAxis = d3.svg.axis()
-      .scale(y)
-      .orient('left');
+          const clip = svg
+            .append('svg:clipPath')
+              .attr('id', 'clip')
+              .append('svg:rect')
+                .attr('id', 'clip-rect')
+                .attr('x', '0')
+                .attr('y', '0')
+                .attr('width', width)
+                .attr('height', height);
 
-    const yAxis1 = d3.svg.axis()
-      .scale(y1)
-      .orient('right');
+          const rect = svg
+            .append('svg:rect')
+              .attr('width', width)
+              .attr('height', height)
+              .attr('fill', 'white');
 
-    const tooltip = d3.select(el)
-      .append('div')
-        .attr('class', 'tooltip')
-        .style('opacity', 0);
+          const primary = svg
+            .append('g')
+              .attr('class', 'primary')
+              .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-    const line = d3.svg.line()
-      .interpolate('basis')
-      .x(d => {
-        return x(d.date);
-      })
-      .y(d => {
-        return y(d.pressureValue);
+          primary.selectAll('.chart')
+            .data(chart1data)
+            .enter()
+            .append('path')
+              .attr('class', 'line')
+              .attr('clip-path', 'url(#clip)')
+              .attr('id', 'linechart')
+              .attr('d', (d) => { return line(d.values); })
+              .style('stroke', (d) => { return color(d.name); });
+
+          primary
+            .append('g')
+              .attr('class', 'x axis')
+              .attr('transform', 'translate(0,' + height + ')')
+              .call(xAxis);
+
+          primary
+            .append('text')
+              .attr('x', 920)
+              .attr('y', 410)// text label for the x axis
+              .style('text-anchor', 'end')
+              .text('Time');
+
+          svg.append('defs')
+            .append('clipPath')
+              .attr('id', 'clip')
+            .append('rect')
+              .attr('width', width)
+              .attr('height', height);  
+
+          primary
+            .append('g')
+              .attr('class', 'y axis')
+              .call(yAxis)
+            .append('text')
+              .attr('transform', 'rotate(-90)')
+              .attr('y', 6)
+              .attr('dy', '.71em')
+              .style('text-anchor', 'end')
+              .text('pressure');
+        }
       });
-
-    const line2 = d3.svg.line()
-      .interpolate('basis')
-      .x(d => {
-        return x(d.date);
-      })
-      .y(d => {
-        return y1(d.rateValue);
-      });
-
-    const color = d3.scale.ordinal()
-      .domain(headingsArray)
-      .range(colorsArray);
-
-    color.domain(d3.keys(m).filter(key => {
-      return key !== 'dateHour';
-    })); 
-
-    var chart1data = headingsArray.map(function(item) {
-      return {
-        name: item,
-        values: mydata.data1.map(function(d) {
-          return {date: d.date, pressureValue: +d[item]};
-        })
-      };
-    });
-
-    var rateData = headingsArray.map(function(item) {
-      return {
-        name: item,
-        values: mydata.data3.map(function(d) {
-          return {date: d.date, rateValue: +d.rate};
-        })
-      };
-    });
-
-    const clip = svg
-      .append('svg:clipPath')
-        .attr('id', 'clip')
-        .append('svg:rect')
-          .attr('id', 'clip-rect')
-          .attr('x', '0')
-          .attr('y', '0')
-          .attr('width', width)
-          .attr('height', height);
-
-    const rect = svg
-      .append('svg:rect')
-        .attr('width', width)
-        .attr('height', height)
-        .attr('fill', 'white');
-
-    const primary = svg
-      .append('g')
-        .attr('class', 'primary')
-        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+    }
     
-    primary.selectAll('.chart')
-        .data(chart1data)
-        .enter()
-        .append('path')
-          .attr('class', 'line')
-          .attr('clip-path', 'url(#clip)')
-          .attr('id', 'linechart')
-          .attr('d', (d) => { return line(d.values); })
-          .style('stroke', (d) => { return color(d.name); });
-
-    primary.selectAll('.chart')
-        .data(rateData)
-        .enter()
-        .append('path')
-          .attr('class', 'line2')
-          .attr('id', 'linechart')
-          .attr('d', (d) => { return line2(d.values); })
-          .style('stroke', (d) => { return color(d.name); });
-
-    primary
-      .append('g')
-        .attr('class', 'x axis')
-        .attr('transform', 'translate(0,' + height + ')')
-        .call(xAxis);
-
-    primary
-      .append('text')
-        .attr('x', 920)
-        .attr('y', 410)// text label for the x axis
-        .style('text-anchor', 'end')
-        .text('Time');
-
-    svg.append('defs')
-      .append('clipPath')
-        .attr('id', 'clip')
-      .append('rect')
-        .attr('width', width)
-        .attr('height', height);  
-
-    primary
-      .append('g')
-        .attr('class', 'y axis')
-        .call(yAxis)
-      .append('text')
-        .attr('transform', 'rotate(-90)')
-        .attr('y', 6)
-        .attr('dy', '.71em')
-        .style('text-anchor', 'end')
-        .text('pressure');
-
-    primary
-      .append('g')
-        .attr('class', 'y axis1')
-        .call(yAxis1)
-        .attr('transform', 'translate(' + width + ',0)')   
-      .append('text')
-        .attr('transform', 'rotate(-90)')
-        .attr('y', 6)
-        .attr('dy', '.71em')
-        .style('text-anchor', 'end')
-        .text('rate');
-
-    drawMeasurements(el);
+    //drawMeasurements(el);
     // TODO -- only show if user selected it, need to customize the look n feel
-    drawLegend(el);
+    //drawLegend(el);
   }
 
   render() {
-    console.log('this.props', this.props);
+    console.log('props', this.props);
+
+    let charts;
+    if (!this.props.chart.settings.stackCharts) {
+      charts = Object.keys(this.props.chart.opdatasets).map(k => {
+        if (this.props.chart.opdatasets[k]) {
+          return <div id={`${k}-chart`}></div>;
+        }
+      });
+    }
+    else {
+      charts = <div id="chart-container"></div>;
+    }
 
     return (
-      <div id="content" className="content"></div>
+      <div id="content" className="content">
+        {charts}
+      </div>
     );
   }
 }
 
 const mapStateToProps = (state) => ({
-  uncertainityData: state.uncertainity.data,
-  measurementsData: state.measurements.data,
-  rateData: state.rates.data,
+  data: state.data.data,
   chart: state.chart.configuration,
 });
 

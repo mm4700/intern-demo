@@ -6,16 +6,16 @@ import {
 } from '../constants';
 import { pushState } from 'redux-router';
 import Promise from 'bluebird';
-import superAgent from 'superagent';
-import superAgentPromise from 'superagent-promise';
+import agent from 'superagent';
+import moment from 'moment';
 
-const agent = superAgentPromise(superAgent, Promise);
-
-export function receiveData(data) {
+export function receiveData(dataset, data) {
+  let newData = {};
+  newData[dataset] = data;
   return {
     type: RECEIVE_DATA,
     payload: {
-      data: data
+      data: newData
     }
   };
 }
@@ -26,16 +26,32 @@ export function fetchDataRequest() {
   };
 }
 
-export function fetchData(opts) {
+export function fetchData(dataset, opts) {
   return (dispatch, state) => {
     dispatch(fetchDataRequest());
-    return fetch('http://localhost:5001/api/v1/dataset?datasets=' + opts.opdatasets + '&well=' + opts.filters.well + '&startDate=' + opts.filters.startDate + '&endDate=' + opts.filters.endDate + '&aggregation=' + opts.filters.aggregation + '&grouping=' + opts.filters.grouping)
-      .then(checkHttpStatus)
-      .then(response => {
-        dispatch(receiveData(response.data));
-      })
-      .catch(error => {
-        // @TODO
+    const data = { well: opts.filters.well, startDate: moment(opts.filters.startDate, 'MM/DD/YYYY HH:mm').valueOf(), endDate: moment(opts.filters.endDate, 'MM/DD/YYYY HH:mm').valueOf(), grouping: opts.filters.grouping, aggregate: opts.filters.aggregate };
+    return new Promise((resolve, reject) => {
+      agent.post('http://localhost:5001/api/v1/data/' + dataset)
+        .send(data)
+        .set('Accept', 'application/json')
+        .end((err, response) => {
+          if (err) {
+            return reject(err);
+          }
+
+          response.body.forEach(d => {
+            Object.keys(d).forEach(k => {
+              if (k === 'dateHour') {
+                d.date = parseDate.parse(d.dateHour);
+              } else {
+                d[k] = +d[k];
+              }
+            });
+          });
+
+          dispatch(receiveData(dataset, response.body));
+          resolve();
+        })
       });
   };
 }

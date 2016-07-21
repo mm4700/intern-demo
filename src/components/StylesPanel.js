@@ -255,7 +255,7 @@ export class StylesPanel extends Component {
                         {highlight}
                         <line onClick={(ev) => this.handleChange('flowRate', 'dashArray', 'none')} x1="10" y1="10" x2="190" y2="10" style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
                         {dashArraySettings.map((d, i) => {
-                          return <line onClick={(ev) => this.handleChange('flowRate', 'dashArray', d)} strokeDasharray={d} x1="10" y1={'' + (10 + (20 * (i+1)))} x2="190" y2={'' + (10 + (20 * (i+1)))} style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
+                          return <line key={'dash-' + i} onClick={(ev) => this.handleChange('flowRate', 'dashArray', d)} strokeDasharray={d} x1="10" y1={'' + (10 + (20 * (i+1)))} x2="190" y2={'' + (10 + (20 * (i+1)))} style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
                         })}
                       </svg>
                     </div>

@@ -9,6 +9,7 @@ export class SettingsPanel extends Component {
     super(props, context);
 
     this.state = {
+      stackCharts: false,
       showLegend: false,
       showUncertainityBounds: true,
       showUncertainityBand: false,
@@ -41,6 +42,15 @@ export class SettingsPanel extends Component {
         </ul>
         <div className="slimScrollDiv" style={{position: 'relative', overflow: 'hidden', width: 'auto', height: '100%'}}>
           <div className="sidenav-inner" style={{overflow: 'hidden', width: 'auto', height: '100%'}}>
+            <div className="form-group">
+              <div className="col-xs-12" style={{marginTop: '10px'}}>
+                <label className="col-xs-12 col-sm-5" style={{height: '20px',padding: 0,fontSize: '12px',marginBottom: 0,lineHeight: '20px'}}>Stack Charts</label>
+                <label className="switch-toggle col-xs-7" style={{display: 'block'}}>
+                  <input type="checkbox" name="stackCharts" id="stackCharts" checked={this.state.stackCharts} onChange={this.handleSettingChange} />
+                  <span></span>
+                </label>
+              </div>
+            </div>
             <div className="form-group">
               <div className="col-xs-12">
                 <div className="checkbox">

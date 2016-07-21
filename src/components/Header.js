@@ -25,8 +25,8 @@ export class Header extends Component {
 
     this.state = {
       filters: false,
-      startDate: '01/01/2016 00:00:00',
-      endDate: '12/31/2016 23:59:59',
+      startDate: '01/01/2015 00:00',
+      endDate: '12/31/2015 23:59',
       well: 'Standard Draw 9-20-18-93',
       grouping: 'daily',
       aggregate: 'avg',
@@ -287,12 +287,12 @@ export class Header extends Component {
                     <div className="row m-t-10 font-12">
                       <div className="col-sm-6">
                         <div className="form-group">
-                          <InputElement mask="99/99/9999 99:99:99" ref="startDate" defaultValue={this.state.startDate} onBlur={this.hangleStartDateChange} className="form-control" placeholder="Start Date/Time"/>
+                          <InputElement mask="99/99/9999 99:99" ref="startDate" defaultValue={this.state.startDate} onBlur={this.hangleStartDateChange} className="form-control" placeholder="Start Date/Time"/>
                         </div>
                       </div>
                       <div className="col-sm-6">
                         <div className="form-group">
-                          <InputElement mask="99/99/9999 99:99:99" ref="endDate" defaultValue={this.state.endDate} onBlur={this.hangleEndDateChange} className="form-control" placeholder="End Date/Time"/>
+                          <InputElement mask="99/99/9999 99:99" ref="endDate" defaultValue={this.state.endDate} onBlur={this.hangleEndDateChange} className="form-control" placeholder="End Date/Time"/>
                         </div>
                       </div>
                       <div className="col-sm-12">

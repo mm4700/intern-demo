@@ -1,14 +1,10 @@
 import {combineReducers} from 'redux';
 import {routerStateReducer} from 'redux-router';
-import uncertainity from './uncertainity';
-import measurements from './measurements';
-import rates from './rates';
+import data from './data';
 import chart from './chart';
 
 export default combineReducers({
-  uncertainity,
-  measurements,
-  rates,
+  data,
   chart,
   router: routerStateReducer
 });

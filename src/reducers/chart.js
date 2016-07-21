@@ -7,6 +7,7 @@ import {
 const initialState = {
   configuration: {
     opdatasets: {
+      rp: true,
       bhp: true,
       whp: true,
       bht: true,
@@ -14,8 +15,8 @@ const initialState = {
       q: true,
     },
     filters: {
-      startDate: '01/01/2016 00:00:00',
-      endDate: '12/31/2016 23:59:59',
+      startDate: '01/01/2015 00:00:00',
+      endDate: '12/31/2015 23:59:59',
       well: 'Standard Draw 9-20-18-93',
       grouping: 'daily',
       aggregate: 'avg',
@@ -83,6 +84,7 @@ const initialState = {
       }
     },
     settings: {
+      stackCharts: false,
       showLegend: false,
       showUncertainityBounds: true,
       showUncertainityBand: false,
