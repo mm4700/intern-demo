@@ -11,12 +11,12 @@ export class Sidebar extends Component {
 
     this.state = {
       activeTab: null,
+      q: true,
       rp: true,
       bhp: true,
       whp: true,
       bht: true,
       wht: true,
-      q: true,
     };
 
     this.toggleMenuItem = this.toggleMenuItem.bind(this);
@@ -83,6 +83,29 @@ export class Sidebar extends Component {
         <div className="slimScrollDiv" style={{position: 'relative', overflow: 'hidden', width: 'auto', height: '100%'}}>
           <div className="sidenav-inner" style={{overflow: 'hidden', width: 'auto', height: '100%'}}>
             <ul className="side-nav magic-nav">
+              <li className="side-nav-header">
+                Views
+                <small>
+                  <a href="#" className="animated rubberBand">
+                    <i className="fa fa-desktop fa-lg"></i>
+                  </a>
+                </small>
+              </li>
+              <li className="view-item active">
+                <a href="#">
+                  <i className="fa fa-circle fa-lg"></i> <span className="nav-text"><strong>Simulations</strong></span>
+                </a>
+              </li>
+              <li  className="view-item">
+                <a href="#">
+                  <i className="fa fa-circle-o fa-lg"></i> <span className="nav-text"><strong>Event Timeline</strong></span>
+                </a>
+              </li>
+              <li  className="view-item">
+                <a href="#">
+                  <i className="fa fa-circle-o fa-lg"></i> <span className="nav-text"><strong>Sensor Availability</strong></span>
+                </a>
+              </li>
               <li className="side-nav-header">
                 Customize
                 <small>

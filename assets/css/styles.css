@@ -48,3 +48,45 @@
   stroke: #000;
   shape-rendering: crispEdges;
 }
+
+.side-nav>li.view-item>a i {
+  color: white !important;
+  top: -1px !important;
+}
+
+.side-nav>li.view-item {
+  cursor: pointer;
+}
+
+.side-nav>li.view-item:hover>a i {
+  color: #56cf87 !important;
+}
+.side-nav>li.view-item:hover>a i:before {
+  content: "\f111";
+}
+
+.side-nav>li.view-item.active>a i {
+  color: #56cf87 !important;
+}
+
+.brush .extent {
+  stroke: #fff;
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
+}
+
+.hide {
+  display: none;
+}
+
+.overlay {
+  fill: none;
+  stroke: none;
+  pointer-events: all;
+}
+
+.focusLine {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 0.5px;
+}

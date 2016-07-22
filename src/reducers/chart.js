@@ -7,12 +7,12 @@ import {
 const initialState = {
   configuration: {
     opdatasets: {
+      q: true,
       rp: true,
       bhp: true,
       whp: true,
       bht: true,
       wht: true,
-      q: true,
     },
     filters: {
       startDate: '01/01/2015 00:00:00',

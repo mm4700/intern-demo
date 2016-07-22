@@ -126,36 +126,40 @@ export default class HomeView extends Component {
         });
   }
 
-  drawLegend(el) {
-    this.legend =
-      this.primary.selectAll('.legend')
-        .data(headingsArray)
-        .enter()
-        .append('g')
+  drawLegend(k, primary) {
+    let legend =
+      primary.append('g')
           .attr('class', 'legend')
-          .attr('transform', (d, i) => { return 'translate(0,' + (i * 20) + ')'; });
+          .attr('transform', (d, i) => { return 'translate(0,' + 385 + ')'; });
 
-    this.legend
-      .append('rect')
-        .attr('x', width - 10)
-        .attr('width', 15)
-        .attr('height', 13)
-        .style('fill', color);
-
-    this.legend
-      .append('text')
-        .attr('x', width - 10)
-        .attr('y', 6)
-        .attr('dy', '.35em')
-        .style('text-anchor', 'end')
-        .style('stroke', '#777672')
-        .on('click', () => {
-          const active = linechart.active ? false : true;
-          const newOpacity = active ? 0 : 1;
-          d3.selectAll(el).style('opacity', newOpacity);
-          linechart.active = active; 
-        })
-        .text(d => { return d; });
+    /*legend.selectAll('.legend-item')
+        .data([
+          {id: 'inferred', name: 'Inferred'},
+          {id: 'inferredUpperBound', name: 'Inferred Upper Bound'},
+          {id: 'inferredLowerBound', name: 'Inferred Lower Bound'},
+          {id: 'measurement', name: 'Measurement'}
+        ])
+        .enter()
+        .append('rect')
+          .attr('x', 0)
+          .attr('width', 25)
+          .attr('height', 10)
+          .style('fill', 'white')
+          .style('stroke', d => rgbToHex(+this.props.chart.styles[d.id].strokeColor.r, +this.props.chart.styles[d.id].strokeColor.g, +this.props.chart.styles[d.id].strokeColor.b));
+        .append('text')
+          .attr('x', 30)
+          .attr('y', 7)
+          .attr('dy', '.15em')
+          .style('text-anchor', 'start')
+          .style('font', '14px sans-serif')
+          .style('font-weight', 'normal')
+          .on('click', () => {
+            //const active = linechart.active ? false : true;
+            //const newOpacity = active ? 0 : 1;
+            //d3.selectAll(el).style('opacity', newOpacity);
+            //linechart.active = active;
+          })
+          .text(d => { return d.name; });*/
   }
 
   drawEventTimeline() {
@@ -207,19 +211,21 @@ export default class HomeView extends Component {
               .attr('width', width + margin.left + margin.right)
               .attr('height', height + margin.top + margin.bottom);
 
-          const minDate = new Date(moment(this.props.chart.filters.startDate, 'MM/DD/YYYY HH:mm').valueOf());
-          const maxDate = new Date(moment(this.props.chart.filters.endDate, 'MM/DD/YYYY HH:mm').valueOf());
+          const minDate = new Date(d3.min(this.props.data[k].map(d => { return d.dateHour; })));
+          const maxDate = new Date(d3.max(this.props.data[k].map(d => { return d.dateHour; })));
           const x = d3.time.scale()
             .domain([
-              new Date(d3.min(this.props.data[k].map(d => { return d.dateHour; }))),
-              new Date(d3.max(this.props.data[k].map(d => { return d.dateHour; })))
+              minDate,
+              maxDate
             ])
             .range([0, width]);
           
+          const minValue = d3.min(this.props.data[k].map(d => { return _.min([d.est, d.up, d.low, d.measurement]); }));
+          const maxValue = d3.max(this.props.data[k].map(d => { return _.max([d.est, d.up, d.low, d.measurement]); }));
           const y = d3.scale.linear().range([height, 0])
             .domain([
-              d3.min(this.props.data[k].map(d => { return _.min([d.est, d.up, d.low, d.measurement]); })),
-              d3.max(this.props.data[k].map(d => { return _.max([d.est, d.up, d.low, d.measurement]); }))
+              minValue,
+              maxValue
             ]);
 
           let timeFormat = '';
@@ -236,6 +242,57 @@ export default class HomeView extends Component {
             timeFormat = '%B';
           }
 
+          const resetBtn = document.getElementById(`${k}-reset-btn`);
+          function brushend() {
+            resetBtn.style.display = 'block';
+
+            x.domain(brush.extent());
+
+            transitionData.call(this);
+            resetAxis();
+
+            d3.select('.brush').call(brush.clear()); // not clearing all brushes
+
+            function processReset() {
+              x.domain([minDate, maxDate]);
+              transitionData.call(this);
+              resetAxis();
+              resetBtn.removeEventListener('click', processReset);
+              resetBtn.style.display = 'none';
+            }
+
+            resetBtn.addEventListener('click', processReset.bind(this));
+          }
+
+          function transitionData() {
+            primary.select('.line')
+              .transition()
+                .duration(500)
+                .attr('d', line);
+
+            primary.select('.line-upper')
+              .transition()
+                .duration(500)
+                .attr('d', inferredBounds[0]);
+
+            primary.select('.line-lower')
+              .transition()
+                .duration(500)
+                .attr('d', inferredBounds[1]);
+
+            primary.selectAll('.dot')
+              .data(this.props.data[k])
+            .transition()
+              .duration(500)
+              .attr('cx', (d) => { return x(new Date(d.dateHour)); });
+          }
+
+          function resetAxis() {
+            primary.transition().duration(500)
+             .select('.x.axis')
+             .call(xAxis);
+          }
+
           const xAxis = d3.svg.axis()
             .scale(x)
             .orient('bottom')
@@ -244,6 +301,10 @@ export default class HomeView extends Component {
           const yAxis = d3.svg.axis()
             .scale(y)
             .orient('left');
+
+          const brush = d3.svg.brush()
+            .x(x)
+            .on('brushend', brushend.bind(this));
 
           const tooltip = d3.select(el)
             .append('div')
@@ -305,15 +366,19 @@ export default class HomeView extends Component {
               .attr('id', 'clip')
               .append('svg:rect')
                 .attr('id', 'clip-rect')
-                .attr('x', '-10')
-                .attr('y', '-10')
-                .attr('width', width + 10)
-                .attr('height', height + 10);
+                .attr('x', '0')
+                .attr('y', '0')
+                .attr('width', width )
+                .attr('height', height);
 
           const primary = svg
             .append('g')
               .attr('class', 'primary')
               .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+              
+          const graph =
+            primary.append('g')
+              .attr('clip-path', 'url(#clip)');
 
           primary.append('text')
             .attr('x', (width / 2))
@@ -323,11 +388,11 @@ export default class HomeView extends Component {
             .style('text-decoration', 'underline')  
             .text(datasetMap[k]);
 
-          primary.append('path')
+          graph.append('path')
             .datum(this.props.data[k])
               .attr('class', 'line')
               .attr('d', line)
-              .attr('clip-path', 'url(#clip)')
+              .style('z-index', 100)
               .style('fill', 'none')
               .style('stroke', rgbToHex(+inferred.strokeColor.r, +inferred.strokeColor.g, +inferred.strokeColor.b))
               .style('stroke-width', inferred.strokeWidth + 'px')
@@ -337,11 +402,11 @@ export default class HomeView extends Component {
           console.log('settings', this.props.chart.settings);
           if (this.props.chart.settings.showUncertainityBounds) {
             const inferredUpperBound = this.props.chart.styles.inferredUpperBound;
-            primary.append('path')
+            graph.append('path')
               .datum(this.props.data[k])
-                .attr('class', 'line')
+                .attr('class', 'line-upper')
                 .attr('d', inferredBounds[0])
-                .attr('clip-path', 'url(#clip)')
+                .style('z-index', 99)
                 .style('fill', 'none')
                 .style('stroke', rgbToHex(+inferredUpperBound.strokeColor.r, +inferredUpperBound.strokeColor.g, +inferredUpperBound.strokeColor.b))
                 .style('stroke-width', inferredUpperBound.strokeWidth + 'px')
@@ -349,11 +414,11 @@ export default class HomeView extends Component {
                 .style('stroke-opacity', +inferredUpperBound.strokeColor.a);
 
             const inferredLowerBound = this.props.chart.styles.inferredLowerBound;
-            primary.append('path')
+            graph.append('path')
               .datum(this.props.data[k])
-                .attr('class', 'line')
+                .attr('class', 'line-lower')
                 .attr('d', inferredBounds[1])
-                .attr('clip-path', 'url(#clip)')
+                .style('z-index', 99)
                 .style('fill', 'none')
                 .style('stroke', rgbToHex(+inferredLowerBound.strokeColor.r, +inferredLowerBound.strokeColor.g, +inferredLowerBound.strokeColor.b))
                 .style('stroke-width', inferredLowerBound.strokeWidth + 'px')
@@ -363,16 +428,17 @@ export default class HomeView extends Component {
 
           if (this.props.chart.settings.showUncertainityBand) {
             const inferredBandStyles = this.props.chart.styles.inferredBand;
-            primary.append('path')
+            graph.append('path')
               .datum(this.props.data[k])
                 .attr('class', 'area')
                 .attr('d', inferredBand)
+                .style('z-index', 50)
                 .style('fill', rgbToHex(+inferredBandStyles.fillColor.r, +inferredBandStyles.fillColor.g, +inferredBandStyles.fillColor.b))
                 .style('fill-opacity', +inferredBandStyles.fillColor.a);
           }
 
           // highlight the data points
-          primary.selectAll('.dot')
+          graph.selectAll('.dot')
             .data(this.props.data[k])
           .enter().append('circle')
             .attr('class', 'dot')
@@ -383,6 +449,45 @@ export default class HomeView extends Component {
             .style('stroke', rgbToHex(+inferred.strokeColor.r, +inferred.strokeColor.g, +inferred.strokeColor.b))
             .style('stroke-width', inferred.strokeWidth + 'px')
             .style('stroke-opacity', +inferred.strokeColor.a);
+
+          const focus = primary.append('g').style('display', 'none');
+          focus.append('line')
+            .attr('id', 'focusLineX')
+            .attr('class', 'focusLine'); // add to css
+          focus.append('line')
+            .attr('id', 'focusLineY')
+            .attr('class', 'focusLine'); // add to css
+
+          primary.append('rect')
+            .attr('class', 'overlay') // add to css
+            .attr('width', width)
+            .attr('height', height)
+            .on('mouseover', () => { focus.style('display', null); })
+            .on('mouseout', () => { focus.style('display', 'none'); })
+            .on('mousemove', function() { 
+              console.log('m0', arguments);
+              const mouse = d3.mouse(this);
+              console.log('m1', mouse[0]);
+              const mouseDate = x.invert(mouse[0]);
+              console.log('m2', this.props.data[k], mouseDate);
+              const i = bisectDate(this.props.data[k], mouseDate); // not sure the this instance is valid here
+              console.log('m3', i);
+
+              const d0 = this.props.data[k][i - 1]
+              const d1 = this.props.data[k][i];
+              // work out which date value is closest to the mouse
+              const d = mouseDate - d0[0] > d1[0] - mouseDate ? d1 : d0;
+
+              const x = x(d[0]);
+              const y = y(d[1]);
+
+              focus.select('#focusLineX')
+                .attr('x1', x).attr('y1', y(minValue))
+                .attr('x2', x).attr('y2', y(maxValue));
+              focus.select('#focusLineY')
+                .attr('x1', x(minDate)).attr('y1', y)
+                .attr('x2', x(maxDate)).attr('y2', y);
+            });
 
           primary
             .append('g')
@@ -406,15 +511,23 @@ export default class HomeView extends Component {
             .attr('transform', 'translate(' + (padding * -1) + ',' + (height / 2) + ')rotate(-90)')
             .text(k === 'whp' || k === 'bhp' || k === 'rp' ? 'Pressure (PSI)' : k === 'q' ? 'Flow Rate (Mcf)' : 'Temperature (Kelvin)');
 
+          graph.append('g')
+            .attr('class', 'x brush')
+            .call(brush)
+          .selectAll('rect')
+            .attr('y', -6)
+            .attr('height', height + 7);
+
           if (k !== 'q') {
-            this.drawMeasurements(k, primary, x, y);
+            this.drawMeasurements(k, graph, x, y);
+          }
+
+          if (this.props.chart.settings.showLegend) {
+            this.drawLegend(k, graph);
           }
         }
       });
     }
-
-    // TODO -- only show if user selected it, need to customize the look n feel
-    //drawLegend(el);
   }
 
   render() {
@@ -424,7 +537,7 @@ export default class HomeView extends Component {
     if (!this.props.chart.settings.stackCharts) {
       const set = Object.keys(this.props.chart.opdatasets).map(k => {
         if (this.props.chart.opdatasets[k]) {
-          return <div className="col-xs-12 col-sm-6"><div key={`${k}-chart`} id={`${k}-chart`} style={{margin: '25px'}}></div></div>;
+          return <div className="col-xs-12 col-sm-6"><a href="#" className="btn btn-default btn-xs" style={{left: '116px', top: '22px', position: 'absolute'}}><i className="fa fa-expand"></i></a><a href="#"  id={k + '-reset-btn'} className="btn btn-default btn-xs" style={{left: '170px', top: '22px', position: 'absolute', display: 'none'}}><i className="fa fa-search-minus"></i></a><div key={`${k}-chart`} id={`${k}-chart`} style={{margin: '25px'}}></div></div>;
         }
       });
 
