@@ -63,6 +63,7 @@ export class StylesPanel extends Component {
           b: '218',
           a: '1',
         },
+        interpolation: 'basis',
       },
       sensorMeasurement: {
         strokeWidth: 1,
@@ -311,6 +312,15 @@ export class StylesPanel extends Component {
                           <SketchPicker color={ this.state.inferredBand.fillColor } onChange={(color) => this.handleColorChange.call(this, 'inferredBand', 'fillColor', color) } />
                         </div>
                         : null }
+                    </div>
+                    <div className="form-group">
+                      <label>Interpolation</label>
+                      <select className="form-control" value={this.state.inferredBand.interpolation} onChange={(ev) => this.handleChange('inferredBand', 'interpolation', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}}>
+                        <option value="linear">Use piecewise linear segments</option>
+                        <option value="step-before">Alternate between vertical and horizontal segments</option>
+                        <option value="step-after">Alternate between horizontal and vertical segments</option>
+                        <option value="basis">Use a B-spline</option>
+                      </select>
                     </div>
                   </form>
                 </div>

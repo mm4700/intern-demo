@@ -22,11 +22,11 @@ export class SettingsPanel extends Component {
   }
 
   handleSettingChange(ev) {
-    const change = {};
+    const change = Object.assign({}, this.state);
     change[ev.currentTarget.name] = ev.currentTarget.checked;
 
     this.props.actions.configureChart({
-      settings: this.state
+      settings: change
     });
 
     this.setState(change);
@@ -65,7 +65,7 @@ export class SettingsPanel extends Component {
               <div className="col-xs-12">
                 <div className="checkbox">
                   <div className="custom-checkbox font-12 no-animation">
-                    <input type="checkbox" name="showUncertainityBounds" id="showUncertainityBounds" checked={this.state.showLegend} onChange={this.handleSettingChange} />
+                    <input type="checkbox" name="showUncertainityBounds" id="showUncertainityBounds" checked={this.state.showUncertainityBounds} onChange={this.handleSettingChange} />
                     <label htmlFor="showUncertainityBounds">Show Uncertainity Bounds</label>
                   </div>
                 </div>

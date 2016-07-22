@@ -56,20 +56,12 @@ const initialState = {
         interpolation: 'basis',
       },
       inferredBand: {
-        strokeWidth: 1,
-        strokeColor: {
-          r: '226',
-          g: '198',
-          b: '218',
-          a: '1',
-        },
         fillColor: {
           r: '226',
           g: '198',
           b: '218',
           a: '1',
         },
-        dashArray: 'none',
         interpolation: 'basis',
       },
       sensorMeasurement: {
@@ -78,7 +70,6 @@ const initialState = {
           r: '226',
           g: '198',
           b: '218',
-          a: '1',
         },
         fillColor: {
           r: '226',
@@ -88,7 +79,7 @@ const initialState = {
         },
         dashArray: 'none',
         radius: 2.8,
-      }
+      },
     },
     settings: {
       stackCharts: false,

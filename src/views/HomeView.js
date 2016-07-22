@@ -252,7 +252,7 @@ export default class HomeView extends Component {
 
           const inferred = this.props.chart.styles.inferred;
           const line = d3.svg.line()
-            .interpolate(inferred.interpolation) // style
+            .interpolate(inferred.interpolation)
             .x(d => {
               return x(new Date(d.dateHour));
             })
@@ -261,6 +261,44 @@ export default class HomeView extends Component {
             });
 
           // handle band vs bounds here
+          let inferredBounds;
+          let inferredBand;
+          if (this.props.chart.settings.showUncertainityBounds) {
+            inferredBounds = [];
+            inferredBounds[0] =
+              d3.svg.line()
+                .interpolate(this.props.chart.styles.inferredUpperBound.interpolation)
+                .x(d => {
+                  return x(new Date(d.dateHour));
+                })
+                .y(d => {
+                  return y(d.up);
+                });
+
+            inferredBounds[1] =
+              d3.svg.line()
+                .interpolate(this.props.chart.styles.inferredLowerBound.interpolation)
+                .x(d => {
+                  return x(new Date(d.dateHour));
+                })
+                .y(d => {
+                  return y(d.low);
+                });
+          }
+
+          if (this.props.chart.settings.showUncertainityBand) {
+            inferredBand =
+              d3.svg.area()
+                .x(d => {
+                  return x(new Date(d.dateHour));
+                })
+                .y0(d => {
+                  return y(d.low);
+                })
+                .y1(d => {
+                  return y(d.up);
+                });
+          }
 
           const clip = svg
             .append('svg:clipPath')
@@ -295,6 +333,43 @@ export default class HomeView extends Component {
               .style('stroke-width', inferred.strokeWidth + 'px')
               .style('stroke-dasharray', inferred.dashArray)
               .style('stroke-opacity', +inferred.strokeColor.a);
+
+          console.log('settings', this.props.chart.settings);
+          if (this.props.chart.settings.showUncertainityBounds) {
+            const inferredUpperBound = this.props.chart.styles.inferredUpperBound;
+            primary.append('path')
+              .datum(this.props.data[k])
+                .attr('class', 'line')
+                .attr('d', inferredBounds[0])
+                .attr('clip-path', 'url(#clip)')
+                .style('fill', 'none')
+                .style('stroke', rgbToHex(+inferredUpperBound.strokeColor.r, +inferredUpperBound.strokeColor.g, +inferredUpperBound.strokeColor.b))
+                .style('stroke-width', inferredUpperBound.strokeWidth + 'px')
+                .style('stroke-dasharray', inferredUpperBound.dashArray)
+                .style('stroke-opacity', +inferredUpperBound.strokeColor.a);
+
+            const inferredLowerBound = this.props.chart.styles.inferredLowerBound;
+            primary.append('path')
+              .datum(this.props.data[k])
+                .attr('class', 'line')
+                .attr('d', inferredBounds[1])
+                .attr('clip-path', 'url(#clip)')
+                .style('fill', 'none')
+                .style('stroke', rgbToHex(+inferredLowerBound.strokeColor.r, +inferredLowerBound.strokeColor.g, +inferredLowerBound.strokeColor.b))
+                .style('stroke-width', inferredLowerBound.strokeWidth + 'px')
+                .style('stroke-dasharray', inferredLowerBound.dashArray)
+                .style('stroke-opacity', +inferredLowerBound.strokeColor.a);
+          }
+
+          if (this.props.chart.settings.showUncertainityBand) {
+            const inferredBandStyles = this.props.chart.styles.inferredBand;
+            primary.append('path')
+              .datum(this.props.data[k])
+                .attr('class', 'area')
+                .attr('d', inferredBand)
+                .style('fill', rgbToHex(+inferredBandStyles.fillColor.r, +inferredBandStyles.fillColor.g, +inferredBandStyles.fillColor.b))
+                .style('fill-opacity', +inferredBandStyles.fillColor.a);
+          }
 
           // highlight the data points
           primary.selectAll('.dot')
