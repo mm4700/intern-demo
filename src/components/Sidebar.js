@@ -37,11 +37,11 @@ export class Sidebar extends Component {
   toggleDataset(dataset, ev) {
     ev.preventDefault();
 
-    const changeState = {};
+    const changeState = Object.assign({}, _.omit(this.state, 'activeTab'));
     changeState[dataset] = !this.state[dataset];
 
     this.props.actions.configureChart({
-      opdatasets: _.omit(this.state, 'activeTab')
+      opdatasets: changeState
     });
 
     this.setState(changeState);
@@ -103,16 +103,16 @@ export class Sidebar extends Component {
                     <li className={this.state.bhp ? 'active' : ''}>
                       <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('bhp', ev)}>Bore Hole Pressure</a>
                     </li>
-                    <li className={this.state.bhp ? 'active' : ''}>
+                    <li className={this.state.whp ? 'active' : ''}>
                       <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('whp', ev)}>Well Head Pressure</a>
                     </li>
-                    <li className={this.state.bhp ? 'active' : ''}>
+                    <li className={this.state.bht ? 'active' : ''}>
                       <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('bht', ev)}>Bore Hole Temperature</a>
                     </li>
-                    <li className={this.state.bhp ? 'active' : ''}>
+                    <li className={this.state.wht ? 'active' : ''}>
                       <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('wht', ev)}>Well Head Temperature</a>
                     </li>
-                    <li className={this.state.bhp ? 'active' : ''}>
+                    <li className={this.state.q ? 'active' : ''}>
                       <a href="#" className="animsition-link" onClick={(ev) => this.toggleDataset('q', ev)}>Flow Rate</a>
                     </li>
                   </ul>

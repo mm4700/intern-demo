@@ -14,12 +14,9 @@ export default createReducer(initialState, {
   [RECEIVE_DATA]: (state, payload) => {
     let newData = Object.assign({}, state);
     newData.isFetching = false;
-    console.log('newData', newData);
     Object.keys(payload.data).forEach(k => {
       newData.data[k] = payload.data[k];
     });
-    console.log('newData', newData);
-
     return newData;
   },
   [FETCH_DATA_REQUEST]: (state, payload) => {

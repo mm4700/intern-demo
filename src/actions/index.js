@@ -39,16 +39,6 @@ export function fetchData(dataset, opts) {
             return reject(err);
           }
 
-          response.body.forEach(d => {
-            Object.keys(d).forEach(k => {
-              if (k === 'dateHour') {
-                d.date = parseDate.parse(d.dateHour);
-              } else {
-                d[k] = +d[k];
-              }
-            });
-          });
-
           dispatch(receiveData(dataset, response.body));
           resolve();
         })

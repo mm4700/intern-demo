@@ -51,7 +51,7 @@ app.post('/api/v1/data/:sensor', function(req, res) {
   db.datasets.find({
     well: req.body.well,
     type: 'estimate',
-    sensor: req.params.sensor,
+    sensor: datasetMap[req.params.sensor],
     dateHour : {
       '$gte' : new Date(req.body.startDate),
       '$lte' : new Date(req.body.endDate)

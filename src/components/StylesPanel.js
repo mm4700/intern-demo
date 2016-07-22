@@ -23,7 +23,7 @@ export class StylesPanel extends Component {
     super(props, context);
 
     this.state = {
-      uncertainity: {
+     inferred: {
         strokeWidth: 1,
         strokeColor: {
           r: '226',
@@ -34,56 +34,51 @@ export class StylesPanel extends Component {
         dashArray: 'none',
         interpolation: 'basis',
       },
-      showBounds: true,
-      showBand: false,
-      uncertainityBounds: {
+      inferredUpperBound: {
         strokeWidth: 1,
         strokeColor: {
-          r: '159',
-          g: '164',
-          b: '123',
+          r: '226',
+          g: '198',
+          b: '218',
           a: '1',
         },
         dashArray: 'none',
         interpolation: 'basis',
       },
-      uncertainityBand: {
+      inferredLowerBound: {
         strokeWidth: 1,
         strokeColor: {
-          r: '70',
-          g: '80',
-          b: '133',
-          a: '1',
-        },
-        dashArray: 'none',
-        fill: {
-          r: '0',
-          g: '205',
-          b: '161',
-          a: '0.8',
-        },
-        interpolation: 'basis',
-      },
-      measurements: {
-        strokeWidth: 1,
-        strokeColor: {
-          r: '186',
-          g: '188',
-          b: '148',
-          a: '1',
-        },
-        fill: '#fff'
-      },
-      flowRate: {
-        strokeWidth: 1,
-        strokeColor: {
-          r: '146',
-          g: '205',
-          b: '0',
+          r: '226',
+          g: '198',
+          b: '218',
           a: '1',
         },
         dashArray: 'none',
         interpolation: 'basis',
+      },
+      inferredBand: {
+        fillColor: {
+          r: '226',
+          g: '198',
+          b: '218',
+          a: '1',
+        },
+      },
+      sensorMeasurement: {
+        strokeWidth: 1,
+        strokeColor: {
+          r: '226',
+          g: '198',
+          b: '218',
+        },
+        fillColor: {
+          r: '226',
+          g: '198',
+          b: '218',
+          a: '1',
+        },
+        dashArray: 'none',
+        radius: 2.8,
       },
       misc: {
         colorPicker: false,
@@ -164,25 +159,25 @@ export class StylesPanel extends Component {
           <div className="sidenav-inner" style={{overflow: 'hidden', width: 'auto', height: '100%'}}>
             <div className="list-group font-12">
               <div className="list-group-item styles">
-                <a href="#" onClick={(ev) => this.toggleSection('uncertainity', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
-                  <i className={'fa ' + (this.state.misc.expanded === 'uncertainity' ? 'fa-caret-down' : 'fa-caret-right')}></i> Estimated Well Head Pressure
+                <a href="#" onClick={(ev) => this.toggleSection('inferred', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
+                  <i className={'fa ' + (this.state.misc.expanded === 'inferred' ? 'fa-caret-down' : 'fa-caret-right')}></i> Inferred Value
                 </a>
                 <hr style={{margin: '5px 0', border: 0}}/>
-                <div style={{marginTop: '15px', marginLeft: '12px', display: (this.state.misc.expanded === 'uncertainity') ? 'block' : 'none'}}>
+                <div style={{marginTop: '15px', marginLeft: '12px', display: (this.state.misc.expanded === 'inferred') ? 'block' : 'none'}}>
                   <form className="font-12">
                     <div className="form-group">
                       <label htmlFor="a1">Stroke Width</label>
-                      <input type="number" className="form-control" value={this.state.uncertainity.strokeWidth} onChange={(ev) => this.handleChange('uncertainity', 'strokeWidth', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}} />
+                      <input type="number" className="form-control" value={this.state.inferred.strokeWidth} onChange={(ev) => this.handleChange('inferred', 'strokeWidth', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}} />
                     </div>
                     <div className="form-group">
                       <label htmlFor="a2">Stroke Color</label>
-                      <div className="styles swatch" style={{width: '46px', display: 'block'}} onClick={() => this.handleClick.call(this, 'uncertainity') }>
-                        <div className="styles color" style={{background: `rgba(${ this.state.uncertainity.strokeColor.r }, ${ this.state.uncertainity.strokeColor.g }, ${ this.state.uncertainity.strokeColor.b }, ${ this.state.uncertainity.strokeColor.a })`}}/>
+                      <div className="styles swatch" style={{width: '46px', display: 'block'}} onClick={() => this.handleClick.call(this, 'inferred') }>
+                        <div className="styles color" style={{background: `rgba(${ this.state.inferred.strokeColor.r }, ${ this.state.inferred.strokeColor.g }, ${ this.state.inferred.strokeColor.b }, ${ this.state.inferred.strokeColor.a })`}}/>
                       </div>
                       { this.state.misc.colorPicker ?
                         <div className="styles popv">
-                          <div className="styles cover" onClick={() => this.handleClose.call(this, 'uncertainity') } />
-                          <SketchPicker color={ this.state.uncertainity.strokeColor } onChange={(color) => this.handleColorChange.call(this, 'uncertainity', 'strokeColor', color) } />
+                          <div className="styles cover" onClick={() => this.handleClose.call(this, 'inferred') } />
+                          <SketchPicker color={ this.state.inferred.strokeColor } onChange={(color) => this.handleColorChange.call(this, 'inferred', 'strokeColor', color) } />
                         </div>
                         : null }
                     </div>
@@ -190,15 +185,15 @@ export class StylesPanel extends Component {
                       <label htmlFor="a3">Dashed</label>
                       <svg width="200" height="200">
                         {highlight}
-                        <line onClick={(ev) => this.handleChange('uncertainity', 'dashArray', 'none')} x1="10" y1="10" x2="190" y2="10" style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
+                        <line onClick={(ev) => this.handleChange('inferred', 'dashArray', 'none')} x1="10" y1="10" x2="190" y2="10" style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
                         {dashArraySettings.map((d, i) => {
-                          return <line key={'dash-' + i} onClick={(ev) => this.handleChange('uncertainity', 'dashArray', d)} strokeDasharray={d} x1="10" y1={'' + (10 + (20 * (i+1)))} x2="190" y2={'' + (10 + (20 * (i+1)))} style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
+                          return <line key={'dash-' + i} onClick={(ev) => this.handleChange('inferred', 'dashArray', d)} strokeDasharray={d} x1="10" y1={'' + (10 + (20 * (i+1)))} x2="190" y2={'' + (10 + (20 * (i+1)))} style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
                         })}
                       </svg>
                     </div>
                     <div className="form-group">
                       <label>Interpolation</label>
-                      <select className="form-control" value={this.state.uncertainity.interpolation} onChange={(ev) => this.handleChange('uncertainity', 'interpolation', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}}>
+                      <select className="form-control" value={this.state.inferred.interpolation} onChange={(ev) => this.handleChange('inferred', 'interpolation', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}}>
                         <option value="linear">Use piecewise linear segments</option>
                         <option value="step-before">Alternate between vertical and horizontal segments</option>
                         <option value="step-after">Alternate between horizontal and vertical segments</option>
@@ -209,43 +204,25 @@ export class StylesPanel extends Component {
                 </div>
               </div>
               <div className="list-group-item styles">
-                <a href="#" onClick={(ev) => this.toggleSection('uncertainityBounds', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
-                  <i className={'fa ' + (this.state.misc.expanded === 'uncertainityBounds' ? 'fa-caret-down' : 'fa-caret-right')}></i> Estimated Well Head Pressure Uncertainity Bounds
+                <a href="#" onClick={(ev) => this.toggleSection('inferredUpperBound', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
+                  <i className={'fa ' + (this.state.misc.expanded === 'inferredUpperBound' ? 'fa-caret-down' : 'fa-caret-right')}></i> Inferred Upper Bound
                 </a>
                 <hr style={{margin: '5px 0', border: 0}}/>
-              </div>
-              <div className="list-group-item styles">
-                <a href="#" onClick={(ev) => this.toggleSection('uncertainityBand', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
-                  <i className={'fa ' + (this.state.misc.expanded === 'uncertainityBand' ? 'fa-caret-down' : 'fa-caret-right')}></i> Estimated Well Head Pressure Uncertainity Band
-                </a>
-                <hr style={{margin: '5px 0', border: 0}}/>
-              </div>
-              <div className="list-group-item styles">
-                <a href="#" onClick={(ev) => this.toggleSection('pressure', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
-                  <i className={'fa ' + (this.state.misc.expanded === 'pressure' ? 'fa-caret-down' : 'fa-caret-right')}></i> Pressure Readings
-                </a>
-                <hr style={{margin: '5px 0', border: 0}}/>
-              </div>
-              <div className="list-group-item styles">
-                <a href="#" onClick={(ev) => this.toggleSection('flowRate', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
-                  <i className={'fa ' + (this.state.misc.expanded === 'flowRate' ? 'fa-caret-down' : 'fa-caret-right')}></i> Flow Rate
-                </a>
-                <hr style={{margin: '5px 0', border: 0}}/>
-                <div style={{marginTop: '15px', marginLeft: '12px', display: (this.state.misc.expanded === 'flowRate') ? 'block' : 'none'}}>
+                <div style={{marginTop: '15px', marginLeft: '12px', display: (this.state.misc.expanded === 'inferredUpperBound') ? 'block' : 'none'}}>
                   <form className="font-12">
                     <div className="form-group">
                       <label htmlFor="a1">Stroke Width</label>
-                      <input type="number" className="form-control" value={this.state.flowRate.strokeWidth} onChange={(ev) => this.handleChange('flowRate', 'strokeWidth', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}} />
+                      <input type="number" className="form-control" value={this.state.inferredUpperBound.strokeWidth} onChange={(ev) => this.handleChange('inferredUpperBound', 'strokeWidth', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}} />
                     </div>
                     <div className="form-group">
                       <label htmlFor="a2">Stroke Color</label>
-                      <div className="styles swatch" style={{width: '46px', display: 'block'}} onClick={() => this.handleClick.call(this, 'flowRate') }>
-                        <div className="styles color" style={{background: `rgba(${ this.state.flowRate.strokeColor.r }, ${ this.state.flowRate.strokeColor.g }, ${ this.state.flowRate.strokeColor.b }, ${ this.state.flowRate.strokeColor.a })`}}/>
+                      <div className="styles swatch" style={{width: '46px', display: 'block'}} onClick={() => this.handleClick.call(this, 'inferredUpperBound') }>
+                        <div className="styles color" style={{background: `rgba(${ this.state.inferredUpperBound.strokeColor.r }, ${ this.state.inferredUpperBound.strokeColor.g }, ${ this.state.inferredUpperBound.strokeColor.b }, ${ this.state.inferredUpperBound.strokeColor.a })`}}/>
                       </div>
                       { this.state.misc.colorPicker ?
                         <div className="styles popv">
-                          <div className="styles cover" onClick={() => this.handleClose.call(this, 'flowRate') } />
-                          <SketchPicker color={ this.state.flowRate.strokeColor } onChange={(color) => this.handleColorChange.call(this, 'flowRate', 'strokeColor', color) } />
+                          <div className="styles cover" onClick={() => this.handleClose.call(this, 'inferredUpperBound') } />
+                          <SketchPicker color={ this.state.inferredUpperBound.strokeColor } onChange={(color) => this.handleColorChange.call(this, 'inferredUpperBound', 'strokeColor', color) } />
                         </div>
                         : null }
                     </div>
@@ -253,20 +230,139 @@ export class StylesPanel extends Component {
                       <label htmlFor="a3">Dashed</label>
                       <svg width="200" height="200">
                         {highlight}
-                        <line onClick={(ev) => this.handleChange('flowRate', 'dashArray', 'none')} x1="10" y1="10" x2="190" y2="10" style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
+                        <line onClick={(ev) => this.handleChange('inferredUpperBound', 'dashArray', 'none')} x1="10" y1="10" x2="190" y2="10" style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
                         {dashArraySettings.map((d, i) => {
-                          return <line key={'dash-' + i} onClick={(ev) => this.handleChange('flowRate', 'dashArray', d)} strokeDasharray={d} x1="10" y1={'' + (10 + (20 * (i+1)))} x2="190" y2={'' + (10 + (20 * (i+1)))} style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
+                          return <line key={'dash-' + i} onClick={(ev) => this.handleChange('inferredUpperBound', 'dashArray', d)} strokeDasharray={d} x1="10" y1={'' + (10 + (20 * (i+1)))} x2="190" y2={'' + (10 + (20 * (i+1)))} style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
                         })}
                       </svg>
                     </div>
                     <div className="form-group">
                       <label>Interpolation</label>
-                      <select className="form-control" value={this.state.flowRate.interpolation} onChange={(ev) => this.handleChange('flowRate', 'interpolation', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}}>
+                      <select className="form-control" value={this.state.inferredUpperBound.interpolation} onChange={(ev) => this.handleChange('inferredUpperBound', 'interpolation', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}}>
                         <option value="linear">Use piecewise linear segments</option>
                         <option value="step-before">Alternate between vertical and horizontal segments</option>
                         <option value="step-after">Alternate between horizontal and vertical segments</option>
                         <option value="basis">Use a B-spline</option>
                       </select>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div className="list-group-item styles">
+                <a href="#" onClick={(ev) => this.toggleSection('inferredLowerBound', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
+                  <i className={'fa ' + (this.state.misc.expanded === 'inferredLowerBound' ? 'fa-caret-down' : 'fa-caret-right')}></i> Inferred Lower Bound
+                </a>
+                <hr style={{margin: '5px 0', border: 0}}/>
+                <div style={{marginTop: '15px', marginLeft: '12px', display: (this.state.misc.expanded === 'inferredLowerBound') ? 'block' : 'none'}}>
+                  <form className="font-12">
+                    <div className="form-group">
+                      <label htmlFor="a1">Stroke Width</label>
+                      <input type="number" className="form-control" value={this.state.inferredLowerBound.strokeWidth} onChange={(ev) => this.handleChange('inferredLowerBound', 'strokeWidth', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}} />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="a2">Stroke Color</label>
+                      <div className="styles swatch" style={{width: '46px', display: 'block'}} onClick={() => this.handleClick.call(this, 'inferredLowerBound') }>
+                        <div className="styles color" style={{background: `rgba(${ this.state.inferredLowerBound.strokeColor.r }, ${ this.state.inferredLowerBound.strokeColor.g }, ${ this.state.inferredLowerBound.strokeColor.b }, ${ this.state.inferredLowerBound.strokeColor.a })`}}/>
+                      </div>
+                      { this.state.misc.colorPicker ?
+                        <div className="styles popv">
+                          <div className="styles cover" onClick={() => this.handleClose.call(this, 'inferredLowerBound') } />
+                          <SketchPicker color={ this.state.inferredLowerBound.strokeColor } onChange={(color) => this.handleColorChange.call(this, 'inferredLowerBound', 'strokeColor', color) } />
+                        </div>
+                        : null }
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="a3">Dashed</label>
+                      <svg width="200" height="200">
+                        {highlight}
+                        <line onClick={(ev) => this.handleChange('inferredLowerBound', 'dashArray', 'none')} x1="10" y1="10" x2="190" y2="10" style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
+                        {dashArraySettings.map((d, i) => {
+                          return <line key={'dash-' + i} onClick={(ev) => this.handleChange('inferredLowerBound', 'dashArray', d)} strokeDasharray={d} x1="10" y1={'' + (10 + (20 * (i+1)))} x2="190" y2={'' + (10 + (20 * (i+1)))} style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
+                        })}
+                      </svg>
+                    </div>
+                    <div className="form-group">
+                      <label>Interpolation</label>
+                      <select className="form-control" value={this.state.inferredLowerBound.interpolation} onChange={(ev) => this.handleChange('inferredLowerBound', 'interpolation', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}}>
+                        <option value="linear">Use piecewise linear segments</option>
+                        <option value="step-before">Alternate between vertical and horizontal segments</option>
+                        <option value="step-after">Alternate between horizontal and vertical segments</option>
+                        <option value="basis">Use a B-spline</option>
+                      </select>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div className="list-group-item styles">
+                <a href="#" onClick={(ev) => this.toggleSection('inferredBand', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
+                  <i className={'fa ' + (this.state.misc.expanded === 'inferredBand' ? 'fa-caret-down' : 'fa-caret-right')}></i> Inferred Band
+                </a>
+                <hr style={{margin: '5px 0', border: 0}}/>
+                <div style={{marginTop: '15px', marginLeft: '12px', display: (this.state.misc.expanded === 'inferredBand') ? 'block' : 'none'}}>
+                  <form className="font-12">
+                    <div className="form-group">
+                      <label>Fill Color</label>
+                      <div className="styles swatch" style={{width: '46px', display: 'block'}} onClick={() => this.handleClick.call(this, 'inferredBand') }>
+                        <div className="styles color" style={{background: `rgba(${ this.state.inferredBand.fillColor.r }, ${ this.state.inferredBand.fillColor.g }, ${ this.state.inferredBand.fillColor.b }, ${ this.state.inferredBand.fillColor.a })`}}/>
+                      </div>
+                      { this.state.misc.colorPicker ?
+                        <div className="styles popv">
+                          <div className="styles cover" onClick={() => this.handleClose.call(this, 'inferredBand') } />
+                          <SketchPicker color={ this.state.inferredBand.fillColor } onChange={(color) => this.handleColorChange.call(this, 'inferredBand', 'fillColor', color) } />
+                        </div>
+                        : null }
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div className="list-group-item styles">
+                <a href="#" onClick={(ev) => this.toggleSection('sensorMeasurement', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
+                  <i className={'fa ' + (this.state.misc.expanded === 'sensorMeasurement' ? 'fa-caret-down' : 'fa-caret-right')}></i> Sensor Measurement
+                </a>
+                <hr style={{margin: '5px 0', border: 0}}/>
+                <div style={{marginTop: '15px', marginLeft: '12px', display: (this.state.misc.expanded === 'sensorMeasurement') ? 'block' : 'none'}}>
+                  <form className="font-12">
+                    <div className="form-group">
+                      <label>Radius</label>
+                      <input type="number" className="form-control" value={this.state.sensorMeasurement.radius} onChange={(ev) => this.handleChange('sensorMeasurement', 'radius', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}} />
+                    </div>
+                    <div className="form-group">
+                      <label>Stroke Width</label>
+                      <input type="number" className="form-control" value={this.state.sensorMeasurement.strokeWidth} onChange={(ev) => this.handleChange('sensorMeasurement', 'strokeWidth', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}} />
+                    </div>
+                    <div className="form-group">
+                      <label>Stroke Color</label>
+                      <div className="styles swatch" style={{width: '46px', display: 'block'}} onClick={() => this.handleClick.call(this, 'sensorMeasurement') }>
+                        <div className="styles color" style={{background: `rgba(${ this.state.sensorMeasurement.strokeColor.r }, ${ this.state.sensorMeasurement.strokeColor.g }, ${ this.state.sensorMeasurement.strokeColor.b }, ${ this.state.sensorMeasurement.strokeColor.a })`}}/>
+                      </div>
+                      { this.state.misc.colorPicker ?
+                        <div className="styles popv">
+                          <div className="styles cover" onClick={() => this.handleClose.call(this, 'sensorMeasurement') } />
+                          <SketchPicker color={ this.state.sensorMeasurement.strokeColor } onChange={(color) => this.handleColorChange.call(this, 'sensorMeasurement', 'strokeColor', color) } />
+                        </div>
+                        : null }
+                    </div>
+                    <div className="form-group">
+                      <label>Fill Color</label>
+                      <div className="styles swatch" style={{width: '46px', display: 'block'}} onClick={() => this.handleClick.call(this, 'sensorMeasurement') }>
+                        <div className="styles color" style={{background: `rgba(${ this.state.sensorMeasurement.fillColor.r }, ${ this.state.sensorMeasurement.fillColor.g }, ${ this.state.sensorMeasurement.fillColor.b }, ${ this.state.sensorMeasurement.fillColor.a })`}}/>
+                      </div>
+                      { this.state.misc.colorPicker ?
+                        <div className="styles popv">
+                          <div className="styles cover" onClick={() => this.handleClose.call(this, 'sensorMeasurement') } />
+                          <SketchPicker color={ this.state.sensorMeasurement.fillColor } onChange={(color) => this.handleColorChange.call(this, 'sensorMeasurement', 'fillColor', color) } />
+                        </div>
+                        : null }
+                    </div>
+                    <div className="form-group">
+                      <label>Dashed</label>
+                      <svg width="200" height="200">
+                        {highlight}
+                        <line onClick={(ev) => this.handleChange('sensorMeasurement', 'dashArray', 'none')} x1="10" y1="10" x2="190" y2="10" style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
+                        {dashArraySettings.map((d, i) => {
+                          return <line key={'dash-' + i} onClick={(ev) => this.handleChange('sensorMeasurement', 'dashArray', d)} strokeDasharray={d} x1="10" y1={'' + (10 + (20 * (i+1)))} x2="190" y2={'' + (10 + (20 * (i+1)))} style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
+                        })}
+                      </svg>
                     </div>
                   </form>
                 </div>

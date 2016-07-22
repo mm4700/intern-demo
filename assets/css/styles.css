@@ -41,3 +41,10 @@
 .right-sidebar-wrap .list-group > .list-group-item.styles:hover {
   color: #9cabba !important;
 }
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}

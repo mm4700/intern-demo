@@ -40,7 +40,7 @@ MongoClient.connect(url, function(err, db) {
       'Well Head Pressure': null,
       'Bore Hole Temperature': null,
       'Well Head Temperature': null,
-      'Q': null
+      'Flow Rate': null
     };
     var nextEvent = null;
 
@@ -70,7 +70,7 @@ MongoClient.connect(url, function(err, db) {
       else if (nextEvent === null || currentDate.isAfter(nextEvent)) {
         nextEvent = null;
 
-        _.each(['Reservoir Pressure', 'Bore Hole Pressure', 'Well Head Pressure', 'Bore Hole Temperature', 'Well Head Temperature', 'Q'], function(fre) {
+        _.each(['Reservoir Pressure', 'Bore Hole Pressure', 'Well Head Pressure', 'Bore Hole Temperature', 'Well Head Temperature', 'Flow Rate'], function(fre) {
           var uncertainity = {};
           uncertainity.wellIndex = i;
           uncertainity.well = wells[i];
@@ -83,7 +83,7 @@ MongoClient.connect(url, function(err, db) {
             uncertainity.est = u; // chance value?
             uncertainity.up = u + ll;
             uncertainity.low = u - ll;
-            uncertainity.measurement = chance.floating({ min: 10000, max: 20000, fixed: 2 });  
+            uncertainity.measurement = u + chance.floating({ min: -50, max: 50, fixed: 2 });  
           }
           else if (fre === 'Bore Hole Pressure') {
             var u = chance.floating({ min: 8000, max: 11000, fixed: 2 });
@@ -91,7 +91,7 @@ MongoClient.connect(url, function(err, db) {
             uncertainity.est = u; // chance value?
             uncertainity.up = u + ll;
             uncertainity.low = u - ll;
-            uncertainity.measurement = chance.floating({ min: 8000, max: 11000, fixed: 2 });
+            uncertainity.measurement = u + chance.floating({ min: -100, max: 100, fixed: 2 });  
           }
           else if (fre === 'Well Head Pressure') {
             var u = chance.floating({ min: 5000, max: 7500, fixed: 2 });
@@ -99,7 +99,7 @@ MongoClient.connect(url, function(err, db) {
             uncertainity.est = u; // chance value?
             uncertainity.up = u + ll;
             uncertainity.low = u - ll;
-            uncertainity.measurement = chance.floating({ min: 4000, max: 8000, fixed: 2 });
+            uncertainity.measurement = u + chance.floating({ min: -50, max: 50, fixed: 2 });  
           }
           else if (fre === 'Bore Hole Temperature') {
             var u = chance.floating({ min: 180, max: 275, fixed: 2 });
@@ -107,7 +107,7 @@ MongoClient.connect(url, function(err, db) {
             uncertainity.est = u; // chance value?
             uncertainity.up = u + ll;
             uncertainity.low = u - ll;
-            uncertainity.measurement = chance.floating({ min: 160, max: 300, fixed: 2 });
+            uncertainity.measurement = u + chance.floating({ min: -25, max: 25, fixed: 2 });  
           }
           else if (fre === 'Well Head Temperature') {
             var u = chance.floating({ min: 100, max: 200, fixed: 2 });
@@ -115,15 +115,30 @@ MongoClient.connect(url, function(err, db) {
             uncertainity.est = u; // chance value?
             uncertainity.up = u + ll;
             uncertainity.low = u - ll;
-            uncertainity.measurement = chance.floating({ min: 90, max: 180, fixed: 2 });
+            uncertainity.measurement = u + chance.floating({ min: -5, max: 5, fixed: 2 });
           }
-          else if (fre === 'Q') {
+          else if (fre === 'Flow Rate') {
             var u = chance.floating({ min: 1000, max: 5000, fixed: 2 });
             var ll = chance.floating({ min: 0, max: 430, fixed: 2 });
             uncertainity.est = u; // chance value?
             uncertainity.up = u + ll;
             uncertainity.low = u - ll;
-            uncertainity.measurement = chance.floating({ min: 2000, max: 3500, fixed: 2 });
+          }
+
+          if (fre !== 'Flow Rate') {
+            var uf = chance.weighted([
+              chance.floating({min: 0, max: 10, fixed: 2}),
+              chance.floating({min: 10, max: 20, fixed: 2}),
+              chance.floating({min: 20, max: 30, fixed: 2}),
+              chance.floating({min: 30, max: 40, fixed: 2}),
+              chance.floating({min: 40, max: 50, fixed: 2}),
+              chance.floating({min: 50, max: 60, fixed: 2}),
+              chance.floating({min: 60, max: 70, fixed: 2}),
+              chance.floating({min: 70, max: 80, fixed: 2}),
+              chance.floating({min: 80, max: 90, fixed: 2}),
+              chance.floating({min: 90, max: 100, fixed: 2})
+            ], [1000000000, 100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1]);
+            uncertainity.uncertainity = uf;
           }
 
           // sensor data was available
@@ -154,9 +169,6 @@ MongoClient.connect(url, function(err, db) {
               else if (fre === 'Well Head Temperature') {
                 other.measurement = chance.floating({ min: 90, max: 180, fixed: 2 });
               }
-              else if (fre === 'Q') {
-                other.measurement = chance.floating({ min: 2000, max: 3500, fixed: 2 });
-              }
 
               var uf = chance.weighted([
                 chance.floating({min: 0, max: 10, fixed: 2}),
@@ -171,7 +183,9 @@ MongoClient.connect(url, function(err, db) {
                 chance.floating({min: 90, max: 100, fixed: 2})
               ], [1000000000, 100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1]);
               other.uncertainity = uf;
-              avv.insert(other);
+              if (fre !== 'Flow Rate') {
+                avv.insert(other);
+              }
             });
           }
           else {

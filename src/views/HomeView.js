@@ -1,50 +1,108 @@
+import _ from 'lodash';
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as actionCreators from '../actions';
 import * as d3 from 'd3';
+import moment from 'moment';
+import Promise from 'bluebird';
 
-const parseDate = d3.time.format('%e/%-m/%Y %H');
+function componentToHex(c) {
+  const hex = c.toString(16);
+  return hex.length == 1 ? '0' + hex : hex;
+}
+
+function rgbToHex(r, g, b) {
+  return '#' + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
+const datasetMap = {
+  rp: 'Reservoir Pressure',
+  bhp: 'Bore Hole Pressure',
+  whp: 'Well Head Pressure',
+  bht: 'Bore Hole Temperature',
+  wht: 'Well Head Temperature',
+  q: 'Flow Rate'
+};
 
 export default class HomeView extends Component {
   constructor(props, context) {
     super(props, context);
 
     this.state = {
-      data: []
+      dataRefreshRequired: false
     };
   }
 
   componentWillMount() {
+    this.fetchNextData();
+  }
+
+  fetchNextData() {
+    let promises = [];
     Object.keys(this.props.chart.opdatasets).map(k => {
       if (this.props.chart.opdatasets[k]) {
-        this.props.actions.fetchData(k, this.props.chart);
+        promises.push(this.props.actions.fetchData(k, this.props.chart));
       }
+    });
+
+    Promise.all(promises).then(() => {
+      this.drawChart();
     });
   }
 
-  componentDidMount() {
-    //this.drawChart();
+  componentWillReceiveProps(nextProps) {
+    if (this.state.previous) {
+      if (nextProps.chart.filters.well !== this.state.previous.well
+        || nextProps.chart.filters.startDate !== this.state.previous.startDate
+        || nextProps.chart.filters.endDate !== this.state.previous.endDate
+        || nextProps.chart.filters.grouping !== this.state.previous.grouping
+        || nextProps.chart.filters.aggregate !== this.state.previous.aggregate) {
+        this.setState({
+          dataRefreshRequired: true
+        });
+      }
+      else {
+        this.setState({
+          dataRefreshRequired: false
+        });
+      }
+    }
   }
 
-  drawMeasurements() {
-    const xMap = d => { return x(d.date); };
-    const yMap = d => { return y(d.est); };
-    const yMap1 = d => { return y(d.est1); };
+  componentDidUpdate() {
+    if (this.state.dataRefreshRequired) {
+      this.fetchNextData();
+    }
+    else {
+      this.drawChart();
+    }
 
-    this.primary
+    this.state.previous = Object.assign({}, this.props.chart.filters);
+  }
+
+  drawMeasurements(k, primary, x, y) {
+    const xMap = d => { return x(new Date(d.dateHour)); };
+    const yMap = d => { return y(d.measurement); };
+
+    let sensorMeasurement = this.props.chart.styles.sensorMeasurement;
+    primary
       .selectAll('.chart')
-      .data(mydata.data2)
+      .data(this.props.data[k].filter(d => d.measurement !== null))
       .enter()
       .append('circle')
         .attr('class', 'dot')
-        .attr('clip-path', 'url(#clip)')
-        .style('fill', '#bc90ba')
-        .attr('r', 2.8)
+        .style('fill', rgbToHex(+sensorMeasurement.fillColor.r, +sensorMeasurement.fillColor.g, +sensorMeasurement.fillColor.b))
+        .style('fill-opacity', +sensorMeasurement.fillColor.a)
+        .style('stroke', rgbToHex(+sensorMeasurement.strokeColor.r, +sensorMeasurement.strokeColor.g, +sensorMeasurement.strokeColor.b))
+        .style('stroke-opacity', +sensorMeasurement.strokeColor.a)
+        .style('stroke-width', sensorMeasurement.strokeWidth + 'px')
+        .style('stroke-dasharray', sensorMeasurement.dashArray)
+        .attr('r', +sensorMeasurement.radius)
         .attr('cx', xMap)
         .attr('cy', yMap)
         .on('mouseover', d => {
-          tooltip.transition()
+          /*tooltip.transition()
             .duration(80)
             .style('opacity', .9)
             .style('left', (d3.event.pageX + 20) + 'px')
@@ -59,12 +117,12 @@ export default class HomeView extends Component {
             }
           });
 
-          tooltip.html('<h1>' + 'X: ' + d.dateHour + ' Y: ' + d.est.toFixed(2) + ' uncertainty:' + dist.toFixed(3) + '</h1>');
+          tooltip.html('<h1>' + 'X: ' + d.dateHour + ' Y: ' + d.est.toFixed(2) + ' uncertainty:' + dist.toFixed(3) + '</h1>');*/
         })
         .on('mouseout', d => {
-          tooltip.transition()
+          /*tooltip.transition()
             .duration(200)
-            .style('opacity', 0);
+            .style('opacity', 0);*/
         });
   }
 
@@ -112,18 +170,6 @@ export default class HomeView extends Component {
     // TODO
   }
 
-  drawZoomPan() {
-    // TODO
-  }
-
-  drawUncertainity() {
-    // as bounds or banding
-  }
-
-  applyFilters() {
-    // TODO
-  }
-
   drawRadialMenu() {
     // Options
     //  Remove
@@ -131,7 +177,7 @@ export default class HomeView extends Component {
   }
 
   drawChart() {
-    const margin = { top: 10, right: 55, bottom: 100, left: 40 };
+    const margin = { top: 25, right: 55, bottom: 100, left: 75 };
 
     if (this.props.chart.settings.stackCharts) {
       const el = document.getElementById('chart-container');
@@ -144,11 +190,17 @@ export default class HomeView extends Component {
       });*/
     }
     else {
-      charts = Object.keys(this.props.chart.opdatasets).map(k => {
-        if (this.props.chart.opdatasets[k]) {
+      Object.keys(this.props.chart.opdatasets).map(k => {
+        if (this.props.chart.opdatasets[k] && this.props.data[k]) {
+          console.log('rendering', k);
+
           const el = document.getElementById(`${k}-chart`);
+          while (el.firstChild) {
+            el.removeChild(el.firstChild);
+          }
+
           const width = el.clientWidth - margin.left - margin.right;
-          const height = el.clientHeight - margin.top - margin.bottom;
+          const height = 450 - margin.top - margin.bottom;
     
           const svg = d3.select(el)
             .append('svg')
@@ -158,16 +210,36 @@ export default class HomeView extends Component {
           const minDate = new Date(moment(this.props.chart.filters.startDate, 'MM/DD/YYYY HH:mm').valueOf());
           const maxDate = new Date(moment(this.props.chart.filters.endDate, 'MM/DD/YYYY HH:mm').valueOf());
           const x = d3.time.scale()
-            .domain([minDate, maxDate])
+            .domain([
+              new Date(d3.min(this.props.data[k].map(d => { return d.dateHour; }))),
+              new Date(d3.max(this.props.data[k].map(d => { return d.dateHour; })))
+            ])
             .range([0, width]);
           
           const y = d3.scale.linear().range([height, 0])
-            .domain([10, d3.max(mydata.data1.map(d => { return d.upPressure1; }))]); // TODO
+            .domain([
+              d3.min(this.props.data[k].map(d => { return _.min([d.est, d.up, d.low, d.measurement]); })),
+              d3.max(this.props.data[k].map(d => { return _.max([d.est, d.up, d.low, d.measurement]); }))
+            ]);
+
+          let timeFormat = '';
+          if (this.props.chart.filters.grouping === 'hourly') {
+            timeFormat = '%e/%-m %H';
+          }
+          else if (this.props.chart.filters.grouping === 'daily') {
+            timeFormat = '%e/%-m';
+          }
+          else if (this.props.chart.filters.grouping === 'weekly') {
+            timeFormat = '%e/%-m';
+          }
+          else if (this.props.chart.filters.grouping === 'monthly') {
+            timeFormat = '%B';
+          }
 
           const xAxis = d3.svg.axis()
             .scale(x)
             .orient('bottom')
-            .tickFormat(d3.time.format('%e/%-m %H')); // @TODO -- Multi Time Formats
+            .tickFormat(d3.time.format(timeFormat)); // @TODO -- Multi Time Formats
 
           const yAxis = d3.svg.axis()
             .scale(y)
@@ -178,102 +250,117 @@ export default class HomeView extends Component {
               .attr('class', 'tooltip')
               .style('opacity', 0);
 
+          const inferred = this.props.chart.styles.inferred;
           const line = d3.svg.line()
-            .interpolate('basis')
+            .interpolate(inferred.interpolation) // style
             .x(d => {
-              return x(d.date);
+              return x(new Date(d.dateHour));
             })
             .y(d => {
-              return y(d.pressureValue);
+              return y(d.est);
             });
+
+          // handle band vs bounds here
 
           const clip = svg
             .append('svg:clipPath')
               .attr('id', 'clip')
               .append('svg:rect')
                 .attr('id', 'clip-rect')
-                .attr('x', '0')
-                .attr('y', '0')
-                .attr('width', width)
-                .attr('height', height);
-
-          const rect = svg
-            .append('svg:rect')
-              .attr('width', width)
-              .attr('height', height)
-              .attr('fill', 'white');
+                .attr('x', '-10')
+                .attr('y', '-10')
+                .attr('width', width + 10)
+                .attr('height', height + 10);
 
           const primary = svg
             .append('g')
               .attr('class', 'primary')
               .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
-          primary.selectAll('.chart')
-            .data(chart1data)
-            .enter()
-            .append('path')
+          primary.append('text')
+            .attr('x', (width / 2))
+            .attr('y', 0 - (margin.top / 2))
+            .attr('text-anchor', 'middle')  
+            .style('font-size', '16px') 
+            .style('text-decoration', 'underline')  
+            .text(datasetMap[k]);
+
+          primary.append('path')
+            .datum(this.props.data[k])
               .attr('class', 'line')
+              .attr('d', line)
               .attr('clip-path', 'url(#clip)')
-              .attr('id', 'linechart')
-              .attr('d', (d) => { return line(d.values); })
-              .style('stroke', (d) => { return color(d.name); });
+              .style('fill', 'none')
+              .style('stroke', rgbToHex(+inferred.strokeColor.r, +inferred.strokeColor.g, +inferred.strokeColor.b))
+              .style('stroke-width', inferred.strokeWidth + 'px')
+              .style('stroke-dasharray', inferred.dashArray)
+              .style('stroke-opacity', +inferred.strokeColor.a);
+
+          // highlight the data points
+          primary.selectAll('.dot')
+            .data(this.props.data[k])
+          .enter().append('circle')
+            .attr('class', 'dot')
+            .attr('cx', line.x())
+            .attr('cy', line.y())
+            .attr('r', 3.5)
+            .style('fill', 'white')
+            .style('stroke', rgbToHex(+inferred.strokeColor.r, +inferred.strokeColor.g, +inferred.strokeColor.b))
+            .style('stroke-width', inferred.strokeWidth + 'px')
+            .style('stroke-opacity', +inferred.strokeColor.a);
 
           primary
             .append('g')
               .attr('class', 'x axis')
               .attr('transform', 'translate(0,' + height + ')')
-              .call(xAxis);
-
-          primary
-            .append('text')
-              .attr('x', 920)
-              .attr('y', 410)// text label for the x axis
-              .style('text-anchor', 'end')
-              .text('Time');
-
-          svg.append('defs')
-            .append('clipPath')
-              .attr('id', 'clip')
-            .append('rect')
-              .attr('width', width)
-              .attr('height', height);  
+              .call(xAxis)
+              .selectAll('text')
+                .attr('transform', function(d) {
+                  return 'translate(' + this.getBBox().height*-1 + ',' + this.getBBox().height + ')rotate(-45)';
+                });
 
           primary
             .append('g')
               .attr('class', 'y axis')
-              .call(yAxis)
-            .append('text')
-              .attr('transform', 'rotate(-90)')
-              .attr('y', 6)
-              .attr('dy', '.71em')
-              .style('text-anchor', 'end')
-              .text('pressure');
+              .call(yAxis);
+
+          // Axis Titles
+          const padding = (k === 'whp' || k === 'bhp' || k === 'rp') ? 65 : 55;
+          primary.append('text')
+            .attr('text-anchor', 'middle') 
+            .attr('transform', 'translate(' + (padding * -1) + ',' + (height / 2) + ')rotate(-90)')
+            .text(k === 'whp' || k === 'bhp' || k === 'rp' ? 'Pressure (PSI)' : k === 'q' ? 'Flow Rate (Mcf)' : 'Temperature (Kelvin)');
+
+          if (k !== 'q') {
+            this.drawMeasurements(k, primary, x, y);
+          }
         }
       });
     }
-    
-    //drawMeasurements(el);
+
     // TODO -- only show if user selected it, need to customize the look n feel
     //drawLegend(el);
   }
 
   render() {
-    console.log('props', this.props);
+    console.log('render');
 
     let charts;
     if (!this.props.chart.settings.stackCharts) {
-      charts = Object.keys(this.props.chart.opdatasets).map(k => {
+      const set = Object.keys(this.props.chart.opdatasets).map(k => {
         if (this.props.chart.opdatasets[k]) {
-          return <div id={`${k}-chart`}></div>;
+          return <div className="col-xs-12 col-sm-6"><div key={`${k}-chart`} id={`${k}-chart`} style={{margin: '25px'}}></div></div>;
         }
       });
+
+      charts = <div className="row">{set}</div>;
     }
     else {
-      charts = <div id="chart-container"></div>;
+      charts = <div id="chart-container" style={{margin: '25px'}}></div>;
     }
 
     return (
-      <div id="content" className="content">
+      <div className="main-container">
         {charts}
       </div>
     );
@@ -289,4 +376,4 @@ const mapDispatchToProps = (dispatch) => ({
   actions: bindActionCreators(actionCreators, dispatch)
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(HomeView);
+export default connect(mapStateToProps, mapDispatchToProps, undefined, { pure: false })(HomeView);

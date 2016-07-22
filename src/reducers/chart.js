@@ -22,7 +22,7 @@ const initialState = {
       aggregate: 'avg',
     },
     styles: {
-      uncertainity: {
+      inferred: {
         strokeWidth: 1,
         strokeColor: {
           r: '226',
@@ -33,54 +33,61 @@ const initialState = {
         dashArray: 'none',
         interpolation: 'basis',
       },
-      uncertainityBounds: {
+      inferredUpperBound: {
         strokeWidth: 1,
         strokeColor: {
-          r: '159',
-          g: '164',
-          b: '123',
+          r: '226',
+          g: '198',
+          b: '218',
           a: '1',
         },
         dashArray: 'none',
         interpolation: 'basis',
       },
-      uncertainityBand: {
+      inferredLowerBound: {
         strokeWidth: 1,
         strokeColor: {
-          r: '70',
-          g: '80',
-          b: '133',
-          a: '1',
-        },
-        dashArray: 'none',
-        fill: {
-          r: '0',
-          g: '205',
-          b: '161',
-          a: '0.8',
-        },
-        interpolation: 'basis',
-      },
-      measurements: {
-        strokeWidth: 1,
-        strokeColor: {
-          r: '186',
-          g: '188',
-          b: '148',
-          a: '1',
-        },
-        fill: '#fff'
-      },
-      flowRate: {
-        strokeWidth: 1,
-        strokeColor: {
-          r: '146',
-          g: '205',
-          b: '0',
+          r: '226',
+          g: '198',
+          b: '218',
           a: '1',
         },
         dashArray: 'none',
         interpolation: 'basis',
+      },
+      inferredBand: {
+        strokeWidth: 1,
+        strokeColor: {
+          r: '226',
+          g: '198',
+          b: '218',
+          a: '1',
+        },
+        fillColor: {
+          r: '226',
+          g: '198',
+          b: '218',
+          a: '1',
+        },
+        dashArray: 'none',
+        interpolation: 'basis',
+      },
+      sensorMeasurement: {
+        strokeWidth: 1,
+        strokeColor: {
+          r: '226',
+          g: '198',
+          b: '218',
+          a: '1',
+        },
+        fillColor: {
+          r: '226',
+          g: '198',
+          b: '218',
+          a: '1',
+        },
+        dashArray: 'none',
+        radius: 2.8,
       }
     },
     settings: {
@@ -97,6 +104,10 @@ const initialState = {
 
 export default createReducer(initialState, {
   [CONFIGURE_CHART]: (state, payload) => {
-    return Object.assign({}, state, _.merge(state, payload));
+    let newData = Object.assign({}, state);
+    Object.keys(payload.configuration).forEach(k => {
+      newData.configuration[k] = payload.configuration[k];
+    });
+    return newData;
   }
 });
