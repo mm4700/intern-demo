@@ -100,30 +100,7 @@ export default class HomeView extends Component {
         .style('stroke-dasharray', sensorMeasurement.dashArray)
         .attr('r', +sensorMeasurement.radius)
         .attr('cx', xMap)
-        .attr('cy', yMap)
-        .on('mouseover', d => {
-          /*tooltip.transition()
-            .duration(80)
-            .style('opacity', .9)
-            .style('left', (d3.event.pageX + 20) + 'px')
-            .style('top', (d3.event.pageY - 30) + 'px');
-          let dist = 0;
-          mydata.data1.forEach(function (n) {
-            if (n.date === d.date) {
-              dist = d.est - n.estPressure ;
-              if (dist < 0) {
-                dist = dist * -1;
-              }   
-            }
-          });
-
-          tooltip.html('<h1>' + 'X: ' + d.dateHour + ' Y: ' + d.est.toFixed(2) + ' uncertainty:' + dist.toFixed(3) + '</h1>');*/
-        })
-        .on('mouseout', d => {
-          /*tooltip.transition()
-            .duration(200)
-            .style('opacity', 0);*/
-        });
+        .attr('cy', yMap);
   }
 
   drawLegend(k, primary) {
@@ -241,6 +218,15 @@ export default class HomeView extends Component {
           else if (this.props.chart.filters.grouping === 'monthly') {
             timeFormat = '%B';
           }
+
+          function zoomed() {
+            console.log('zoomed', d3.event);
+            primary.attr('transform', 'translate(' + d3.event.translate + ')scale(' + d3.event.scale + ')');
+          }
+
+          const zoom = d3.behavior.zoom()
+            .scaleExtent([1, 10])
+            .on('zoom', zoomed);
 
           const resetBtn = document.getElementById(`${k}-reset-btn`);
           function brushend() {
@@ -374,7 +360,8 @@ export default class HomeView extends Component {
           const primary = svg
             .append('g')
               .attr('class', 'primary')
-              .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+              .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+              .call(zoom);
               
           const graph =
             primary.append('g')
@@ -388,6 +375,17 @@ export default class HomeView extends Component {
             .style('text-decoration', 'underline')  
             .text(datasetMap[k]);
 
+          if (this.props.chart.settings.showUncertainityBand) {
+            const inferredBandStyles = this.props.chart.styles.inferredBand;
+            graph.append('path')
+              .datum(this.props.data[k])
+                .attr('class', 'area')
+                .attr('d', inferredBand)
+                .style('z-index', 50)
+                .style('fill', rgbToHex(+inferredBandStyles.fillColor.r, +inferredBandStyles.fillColor.g, +inferredBandStyles.fillColor.b))
+                .style('fill-opacity', +inferredBandStyles.fillColor.a);
+          }
+
           graph.append('path')
             .datum(this.props.data[k])
               .attr('class', 'line')
@@ -399,7 +397,6 @@ export default class HomeView extends Component {
               .style('stroke-dasharray', inferred.dashArray)
               .style('stroke-opacity', +inferred.strokeColor.a);
 
-          console.log('settings', this.props.chart.settings);
           if (this.props.chart.settings.showUncertainityBounds) {
             const inferredUpperBound = this.props.chart.styles.inferredUpperBound;
             graph.append('path')
@@ -426,17 +423,6 @@ export default class HomeView extends Component {
                 .style('stroke-opacity', +inferredLowerBound.strokeColor.a);
           }
 
-          if (this.props.chart.settings.showUncertainityBand) {
-            const inferredBandStyles = this.props.chart.styles.inferredBand;
-            graph.append('path')
-              .datum(this.props.data[k])
-                .attr('class', 'area')
-                .attr('d', inferredBand)
-                .style('z-index', 50)
-                .style('fill', rgbToHex(+inferredBandStyles.fillColor.r, +inferredBandStyles.fillColor.g, +inferredBandStyles.fillColor.b))
-                .style('fill-opacity', +inferredBandStyles.fillColor.a);
-          }
-
           // highlight the data points
           graph.selectAll('.dot')
             .data(this.props.data[k])
@@ -444,50 +430,66 @@ export default class HomeView extends Component {
             .attr('class', 'dot')
             .attr('cx', line.x())
             .attr('cy', line.y())
-            .attr('r', 3.5)
+            .attr('r', 10)
             .style('fill', 'white')
             .style('stroke', rgbToHex(+inferred.strokeColor.r, +inferred.strokeColor.g, +inferred.strokeColor.b))
             .style('stroke-width', inferred.strokeWidth + 'px')
-            .style('stroke-opacity', +inferred.strokeColor.a);
+            .style('stroke-opacity', +inferred.strokeColor.a)
+            .on('contextmenu', function (d,i) {
+              
 
-          const focus = primary.append('g').style('display', 'none');
-          focus.append('line')
-            .attr('id', 'focusLineX')
-            .attr('class', 'focusLine'); // add to css
-          focus.append('line')
-            .attr('id', 'focusLineY')
-            .attr('class', 'focusLine'); // add to css
-
-          primary.append('rect')
-            .attr('class', 'overlay') // add to css
-            .attr('width', width)
-            .attr('height', height)
-            .on('mouseover', () => { focus.style('display', null); })
-            .on('mouseout', () => { focus.style('display', 'none'); })
-            .on('mousemove', function() { 
-              console.log('m0', arguments);
-              const mouse = d3.mouse(this);
-              console.log('m1', mouse[0]);
-              const mouseDate = x.invert(mouse[0]);
-              console.log('m2', this.props.data[k], mouseDate);
-              const i = bisectDate(this.props.data[k], mouseDate); // not sure the this instance is valid here
-              console.log('m3', i);
-
-              const d0 = this.props.data[k][i - 1]
-              const d1 = this.props.data[k][i];
-              // work out which date value is closest to the mouse
-              const d = mouseDate - d0[0] > d1[0] - mouseDate ? d1 : d0;
-
-              const x = x(d[0]);
-              const y = y(d[1]);
-
-              focus.select('#focusLineX')
-                .attr('x1', x).attr('y1', y(minValue))
-                .attr('x2', x).attr('y2', y(maxValue));
-              focus.select('#focusLineY')
-                .attr('x1', x(minDate)).attr('y1', y)
-                .attr('x2', x(maxDate)).attr('y2', y);
+              //d3.event.preventDefault();
             });
+
+          if (this.props.chart.settings.showEdgeCoordinates) {
+            const focus = primary.append('g').style('display', 'none');
+            focus.append('line')
+              .attr('id', 'focusLineX')
+              .attr('class', 'focusLine');
+            focus.append('line')
+              .attr('id', 'focusLineY')
+              .attr('class', 'focusLine');
+            focus.append('rect')
+              .attr('id', 'focusXCoordinate')
+              .attr('class', 'focusCoordinate');
+            focus.append('rect')
+              .attr('id', 'focusYCoordinate')
+              .attr('class', 'focusCoordinate');
+
+            const xRef = x;
+            const yRef = y;
+            const dataRef = this.props.data[k];
+            const bisectDate = d3.bisector((d) => { return d.dateHour; }).left;
+            /*primary.append('rect')
+              .attr('class', 'overlay') // add to css
+              .attr('width', width)
+              .attr('height', height)
+              .on('mouseover', () => { focus.style('display', null); })
+              .on('mouseout', () => { focus.style('display', 'none'); })
+              .on('mousemove', function() { 
+                const mouse = d3.mouse(this);
+                const mouseDate = xRef.invert(mouse[0]);
+                const i = bisectDate(dataRef, mouseDate); // not sure the this instance is valid here
+                
+                const d0 = dataRef[i - 1]
+                const d1 = dataRef[i];
+                // work out which date value is closest to the mouse
+                const d = mouseDate - d0.dateHour > d1.dateHour - mouseDate ? d1 : d0;
+
+                const x = xRef(d.dateHour);
+                const y = yRef(yRef.invert(mouse[1]));
+
+                focus.select('#focusLineX')
+                  .attr('x1', x).attr('y1', yRef(minValue))
+                  .attr('x2', x).attr('y2', yRef(maxValue));
+                focus.select('#focusLineY')
+                  .attr('x1', xRef(minDate)).attr('y1', y)
+                  .attr('x2', xRef(maxDate)).attr('y2', y);
+                focus.selexct('#focusXCoordinate')
+                  .attr('x1', xRef(minDate)).attr('y1', y)
+                  .attr('x2', xRef(maxDate)).attr('y2', y);
+              });*/
+          }
 
           primary
             .append('g')
