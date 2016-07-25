@@ -11,6 +11,7 @@ export class Sidebar extends Component {
 
     this.state = {
       activeTab: null,
+      activeView: 'simulations',
       q: true,
       rp: true,
       bhp: true,
@@ -37,7 +38,7 @@ export class Sidebar extends Component {
   toggleDataset(dataset, ev) {
     ev.preventDefault();
 
-    const changeState = Object.assign({}, _.omit(this.state, 'activeTab'));
+    const changeState = Object.assign({}, _.omit(this.state, ['activeTab', 'activeView']));
     changeState[dataset] = !this.state[dataset];
 
     this.props.actions.configureChart({
@@ -77,6 +78,13 @@ export class Sidebar extends Component {
     });
   }
 
+  // should this be a route or done via redux? route i think
+  changeView(view, ev) {
+    this.setState({
+      activeView: view
+    });
+  }
+
   render() {
     return (
       <aside className="side-navigation-wrap sidebar-fixed">
@@ -91,20 +99,20 @@ export class Sidebar extends Component {
                   </a>
                 </small>
               </li>
-              <li className="view-item active">
-                <a href="#">
+              <li className={'view-item ' + (this.state.activeView === 'simulations' ? 'active' : '')}>
+                <Link to="/simulations" onClick={(ev) => this.changeView('simulations', ev)}>
                   <i className="fa fa-circle fa-lg"></i> <span className="nav-text"><strong>Simulations</strong></span>
-                </a>
+                </Link>
               </li>
-              <li  className="view-item">
-                <a href="#">
+              <li className={'view-item ' + (this.state.activeView === 'events' ? 'active' : '')}>
+                <Link to="/events" onClick={(ev) => this.changeView('events', ev)}>
                   <i className="fa fa-circle-o fa-lg"></i> <span className="nav-text"><strong>Event Timeline</strong></span>
-                </a>
+                </Link>
               </li>
-              <li  className="view-item">
-                <a href="#">
+              <li className={'view-item ' + (this.state.activeView === 'availability' ? 'active' : '')}>
+                <Link to="/availability" onClick={(ev) => this.changeView('availability', ev)}>
                   <i className="fa fa-circle-o fa-lg"></i> <span className="nav-text"><strong>Sensor Availability</strong></span>
-                </a>
+                </Link>
               </li>
               <li className="side-nav-header">
                 Customize

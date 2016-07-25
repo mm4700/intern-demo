@@ -65,7 +65,7 @@ export class StylesPanel extends Component {
         },
         interpolation: 'basis',
       },
-      sensorMeasurement: {
+      measurement: {
         strokeWidth: 1,
         strokeColor: {
           r: '226',
@@ -326,41 +326,41 @@ export class StylesPanel extends Component {
                 </div>
               </div>
               <div className="list-group-item styles">
-                <a href="#" onClick={(ev) => this.toggleSection('sensorMeasurement', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
-                  <i className={'fa ' + (this.state.misc.expanded === 'sensorMeasurement' ? 'fa-caret-down' : 'fa-caret-right')}></i> Sensor Measurement
+                <a href="#" onClick={(ev) => this.toggleSection('measurement', ev)} style={{color: '#9cabba', textDecoration: 'none'}}>
+                  <i className={'fa ' + (this.state.misc.expanded === 'measurement' ? 'fa-caret-down' : 'fa-caret-right')}></i> Sensor Measurement
                 </a>
                 <hr style={{margin: '5px 0', border: 0}}/>
-                <div style={{marginTop: '15px', marginLeft: '12px', display: (this.state.misc.expanded === 'sensorMeasurement') ? 'block' : 'none'}}>
+                <div style={{marginTop: '15px', marginLeft: '12px', display: (this.state.misc.expanded === 'measurement') ? 'block' : 'none'}}>
                   <form className="font-12">
                     <div className="form-group">
                       <label>Radius</label>
-                      <input type="number" className="form-control" value={this.state.sensorMeasurement.radius} onChange={(ev) => this.handleChange('sensorMeasurement', 'radius', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}} />
+                      <input type="number" className="form-control" value={this.state.measurement.radius} onChange={(ev) => this.handleChange('measurement', 'radius', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}} />
                     </div>
                     <div className="form-group">
                       <label>Stroke Width</label>
-                      <input type="number" className="form-control" value={this.state.sensorMeasurement.strokeWidth} onChange={(ev) => this.handleChange('sensorMeasurement', 'strokeWidth', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}} />
+                      <input type="number" className="form-control" value={this.state.measurement.strokeWidth} onChange={(ev) => this.handleChange('measurement', 'strokeWidth', ev)} style={{borderRadius: 0, height: '22px', lineHeight: '22px', fontSize: '12px', padding: '2px 5px'}} />
                     </div>
                     <div className="form-group">
                       <label>Stroke Color</label>
-                      <div className="styles swatch" style={{width: '46px', display: 'block'}} onClick={() => this.handleClick.call(this, 'sensorMeasurement') }>
-                        <div className="styles color" style={{background: `rgba(${ this.state.sensorMeasurement.strokeColor.r }, ${ this.state.sensorMeasurement.strokeColor.g }, ${ this.state.sensorMeasurement.strokeColor.b }, ${ this.state.sensorMeasurement.strokeColor.a })`}}/>
+                      <div className="styles swatch" style={{width: '46px', display: 'block'}} onClick={() => this.handleClick.call(this, 'measurement') }>
+                        <div className="styles color" style={{background: `rgba(${ this.state.measurement.strokeColor.r }, ${ this.state.measurement.strokeColor.g }, ${ this.state.measurement.strokeColor.b }, ${ this.state.measurement.strokeColor.a })`}}/>
                       </div>
                       { this.state.misc.colorPicker ?
                         <div className="styles popv">
-                          <div className="styles cover" onClick={() => this.handleClose.call(this, 'sensorMeasurement') } />
-                          <SketchPicker color={ this.state.sensorMeasurement.strokeColor } onChange={(color) => this.handleColorChange.call(this, 'sensorMeasurement', 'strokeColor', color) } />
+                          <div className="styles cover" onClick={() => this.handleClose.call(this, 'measurement') } />
+                          <SketchPicker color={ this.state.measurement.strokeColor } onChange={(color) => this.handleColorChange.call(this, 'measurement', 'strokeColor', color) } />
                         </div>
                         : null }
                     </div>
                     <div className="form-group">
                       <label>Fill Color</label>
-                      <div className="styles swatch" style={{width: '46px', display: 'block'}} onClick={() => this.handleClick.call(this, 'sensorMeasurement') }>
-                        <div className="styles color" style={{background: `rgba(${ this.state.sensorMeasurement.fillColor.r }, ${ this.state.sensorMeasurement.fillColor.g }, ${ this.state.sensorMeasurement.fillColor.b }, ${ this.state.sensorMeasurement.fillColor.a })`}}/>
+                      <div className="styles swatch" style={{width: '46px', display: 'block'}} onClick={() => this.handleClick.call(this, 'measurement') }>
+                        <div className="styles color" style={{background: `rgba(${ this.state.measurement.fillColor.r }, ${ this.state.measurement.fillColor.g }, ${ this.state.measurement.fillColor.b }, ${ this.state.measurement.fillColor.a })`}}/>
                       </div>
                       { this.state.misc.colorPicker ?
                         <div className="styles popv">
-                          <div className="styles cover" onClick={() => this.handleClose.call(this, 'sensorMeasurement') } />
-                          <SketchPicker color={ this.state.sensorMeasurement.fillColor } onChange={(color) => this.handleColorChange.call(this, 'sensorMeasurement', 'fillColor', color) } />
+                          <div className="styles cover" onClick={() => this.handleClose.call(this, 'measurement') } />
+                          <SketchPicker color={ this.state.measurement.fillColor } onChange={(color) => this.handleColorChange.call(this, 'measurement', 'fillColor', color) } />
                         </div>
                         : null }
                     </div>
@@ -368,9 +368,9 @@ export class StylesPanel extends Component {
                       <label>Dashed</label>
                       <svg width="200" height="200">
                         {highlight}
-                        <line onClick={(ev) => this.handleChange('sensorMeasurement', 'dashArray', 'none')} x1="10" y1="10" x2="190" y2="10" style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
+                        <line onClick={(ev) => this.handleChange('measurement', 'dashArray', 'none')} x1="10" y1="10" x2="190" y2="10" style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
                         {dashArraySettings.map((d, i) => {
-                          return <line key={'dash-' + i} onClick={(ev) => this.handleChange('sensorMeasurement', 'dashArray', d)} strokeDasharray={d} x1="10" y1={'' + (10 + (20 * (i+1)))} x2="190" y2={'' + (10 + (20 * (i+1)))} style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
+                          return <line key={'dash-' + i} onClick={(ev) => this.handleChange('measurement', 'dashArray', d)} strokeDasharray={d} x1="10" y1={'' + (10 + (20 * (i+1)))} x2="190" y2={'' + (10 + (20 * (i+1)))} style={{stroke: 'white', strokeWidth: 2, cursor: 'pointer'}}/>
                         })}
                       </svg>
                     </div>

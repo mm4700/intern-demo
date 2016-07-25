@@ -3,7 +3,7 @@ import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as actionCreators from '../actions';
-import * as d3 from 'd3';
+import d3 from 'd3';
 import moment from 'moment';
 import Promise from 'bluebird';
 
@@ -85,7 +85,7 @@ export default class HomeView extends Component {
     const xMap = d => { return x(new Date(d.dateHour)); };
     const yMap = d => { return y(d.measurement); };
 
-    let sensorMeasurement = this.props.chart.styles.sensorMeasurement;
+    let sensorMeasurement = this.props.chart.styles.measurement;
     primary
       .selectAll('.chart')
       .data(this.props.data[k].filter(d => d.measurement !== null))
@@ -109,22 +109,28 @@ export default class HomeView extends Component {
           .attr('class', 'legend')
           .attr('transform', (d, i) => { return 'translate(0,' + 385 + ')'; });
 
-    /*legend.selectAll('.legend-item')
-        .data([
-          {id: 'inferred', name: 'Inferred'},
-          {id: 'inferredUpperBound', name: 'Inferred Upper Bound'},
-          {id: 'inferredLowerBound', name: 'Inferred Lower Bound'},
-          {id: 'measurement', name: 'Measurement'}
-        ])
-        .enter()
+    const legendItems = [
+      { id: 'inferred', name: 'Inferred' },
+      { id: 'inferredUpperBound', name: 'Inferred Upper Bound' },
+      { id: 'inferredLowerBound', name: 'Inferred Lower Bound' },
+      { id: 'measurement', name: 'Measurement' }
+    ];
+    
+    let nextX = 0;
+    _.each(legendItems, (item, i) => {
+      legend
         .append('rect')
-          .attr('x', 0)
+          .attr('x', nextX)
           .attr('width', 25)
           .attr('height', 10)
           .style('fill', 'white')
-          .style('stroke', d => rgbToHex(+this.props.chart.styles[d.id].strokeColor.r, +this.props.chart.styles[d.id].strokeColor.g, +this.props.chart.styles[d.id].strokeColor.b));
+          .style('stroke', rgbToHex(+this.props.chart.styles[item.id].strokeColor.r, +this.props.chart.styles[item.id].strokeColor.g, +this.props.chart.styles[item.id].strokeColor.b));
+    
+      nextX += 30;
+      legend
         .append('text')
-          .attr('x', 30)
+          .attr('class', item.id + '-legend-item')
+          .attr('x', nextX)
           .attr('y', 7)
           .attr('dy', '.15em')
           .style('text-anchor', 'start')
@@ -136,7 +142,11 @@ export default class HomeView extends Component {
             //d3.selectAll(el).style('opacity', newOpacity);
             //linechart.active = active;
           })
-          .text(d => { return d.name; });*/
+          .text(item.name);
+
+      let bbox = d3.select('.' + item.id + '-legend-item').node().getBBox();
+      nextX += bbox.width + 5;
+    });
   }
 
   drawEventTimeline() {
@@ -173,8 +183,6 @@ export default class HomeView extends Component {
     else {
       Object.keys(this.props.chart.opdatasets).map(k => {
         if (this.props.chart.opdatasets[k] && this.props.data[k]) {
-          console.log('rendering', k);
-
           const el = document.getElementById(`${k}-chart`);
           while (el.firstChild) {
             el.removeChild(el.firstChild);
@@ -220,13 +228,14 @@ export default class HomeView extends Component {
           }
 
           function zoomed() {
-            console.log('zoomed', d3.event);
-            primary.attr('transform', 'translate(' + d3.event.translate + ')scale(' + d3.event.scale + ')');
+            graph.attr('transform', 'translate(' + d3.event.translate + ')scale(' + d3.event.scale + ')');
           }
 
           const zoom = d3.behavior.zoom()
             .scaleExtent([1, 10])
-            .on('zoom', zoomed);
+            .on('zoom', function() {
+              zoomed();
+            });
 
           const resetBtn = document.getElementById(`${k}-reset-btn`);
           function brushend() {
@@ -460,7 +469,7 @@ export default class HomeView extends Component {
             const yRef = y;
             const dataRef = this.props.data[k];
             const bisectDate = d3.bisector((d) => { return d.dateHour; }).left;
-            /*primary.append('rect')
+            primary.append('rect')
               .attr('class', 'overlay') // add to css
               .attr('width', width)
               .attr('height', height)
@@ -485,10 +494,10 @@ export default class HomeView extends Component {
                 focus.select('#focusLineY')
                   .attr('x1', xRef(minDate)).attr('y1', y)
                   .attr('x2', xRef(maxDate)).attr('y2', y);
-                focus.selexct('#focusXCoordinate')
-                  .attr('x1', xRef(minDate)).attr('y1', y)
-                  .attr('x2', xRef(maxDate)).attr('y2', y);
-              });*/
+                //focus.selexct('#focusXCoordinate')
+                //  .attr('x1', xRef(minDate)).attr('y1', y)
+                //  .attr('x2', xRef(maxDate)).attr('y2', y);
+              });
           }
 
           primary
@@ -525,7 +534,8 @@ export default class HomeView extends Component {
           }
 
           if (this.props.chart.settings.showLegend) {
-            this.drawLegend(k, graph);
+            console.log('drawing legend');
+            this.drawLegend(k, primary);
           }
         }
       });

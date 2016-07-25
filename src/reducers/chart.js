@@ -64,7 +64,7 @@ const initialState = {
         },
         interpolation: 'basis',
       },
-      sensorMeasurement: {
+      measurement: {
         strokeWidth: 1,
         strokeColor: {
           r: '226',
