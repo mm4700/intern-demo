@@ -127,6 +127,17 @@ export default class EventsView extends Component {
         .attr('y', (d) => { return y(100); })
         .attr('width', (d, i) => { return x(new Date(dataRef[i + 1].dateHour)) - x(new Date(dataRef[i].dateHour)); })
         .attr('height', (d) => { return y(0); });
+
+
+      // add hover
+      // cycle through color set
+      // add text 
+      // add stroke style
+      // click event shows details below it:
+      //  ** Event Name
+      //  ** Event state and end
+      //  ** Event Ticket
+      //  ** Event assigned to, etc...
     });
   }
 
