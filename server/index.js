@@ -36,13 +36,12 @@ process.on('uncaughtException', function (err) {
   console.log(err);
 });
 
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
 app.use(cors());
 app.use(require('compression')()); // gzip
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
-app.use('/', express.static('build'));
+app.use(express.static(path.join(__dirname, '../build')));
+app.use(express.static(path.join(__dirname, '..')));
 
 app.post('/api/v1/data/:sensor', function(req, res) {
   var startDate = moment({ years: 2015, months: 0, days: 0, hours: 0, minutes: 0 });
@@ -115,27 +114,8 @@ app.post('/api/v1/data/:sensor', function(req, res) {
   });
 });
 
-app.get('*', function(req, res) {
-  res.render('index');
-});
-
-app.use(function(req, res, next){
-  res.status(404);
-
-  // respond with html page
-  if (req.accepts('html')) {
-    res.render('404', { url: req.url });
-    return;
-  }
-
-  // respond with json
-  if (req.accepts('json')) {
-    res.send({ error: 'Not found' });
-    return;
-  }
-
-  // default to plain-text. send()
-  res.type('txt').send('Not found');
+app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, '../build/index.html'));
 });
 
 httpServer.listen(5001, function(err) {
