@@ -114,6 +114,19 @@ app.post('/api/v1/data/:sensor', function(req, res) {
   });
 });
 
+app.post('/api/v1/events', function(req, res) {
+  var startDate = moment({ years: 2015, months: 0, days: 0, hours: 0, minutes: 0 });
+
+  db.events.find({
+    dateHour : {
+      '$gte' : new Date(req.body.startDate),
+      '$lte' : new Date(req.body.endDate)
+    }
+  }).toArray(function(err, results) {
+    res.status(200).send(results);
+  });
+});
+
 app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname, '../build/index.html'));
 });

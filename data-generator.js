@@ -43,6 +43,8 @@ MongoClient.connect(url, function(err, db) {
       'Flow Rate': null
     };
     var nextEvent = null;
+    var eventList = [];
+    var datasetList = [];
 
     var eventTypes = [
       { name: 'Well Offline', maxDuration: 14 * 24 * 60 },
@@ -53,9 +55,12 @@ MongoClient.connect(url, function(err, db) {
       { name: 'Workover', maxDuration: 6 * 24 * 60 }
     ];
 
+    let index = 1;
     while (currentDate.isBefore(endDate)) {
-      var eventChance = chance.weighted([0, 1, 2, 3, 4, 5, 6], [800, 1, 34, 12, 12, 42, 20]);
+      var eventChance = chance.weighted([0, 1, 2, 3, 4, 5, 6], [75000, 1, 34, 12, 12, 42, 20]);
       if (eventChance !== 0) {
+        //console.log('event occurred', currentDate.toString(), eventChance, eventTypes[eventChance - 1]);
+
         var e = {};
         e.wellIndex = i;
         e.well = wells[i];
@@ -63,69 +68,120 @@ MongoClient.connect(url, function(err, db) {
         e.event = eventTypes[eventChance - 1].name;
         var ii = chance.integer({ min: 1, max: eventTypes[eventChance - 1].maxDuration });
         e.duration = ii;
-        ec.insert(e);
+        //console.log('Adding to events');
+        eventList.push(e);
+        if (eventList.length >= 1000) {
+          ec.insertMany(eventList);
+          eventList = [];
+        }
 
         nextEvent = moment(currentDate).add(ii, 'minutes');
       }
-      else if (nextEvent === null || currentDate.isAfter(nextEvent)) {
+      
+      if (nextEvent === null || currentDate.isAfter(nextEvent)) {
         nextEvent = null;
+      }
 
-        _.each(['Reservoir Pressure', 'Bore Hole Pressure', 'Well Head Pressure', 'Bore Hole Temperature', 'Well Head Temperature', 'Flow Rate'], function(fre) {
-          var uncertainity = {};
-          uncertainity.wellIndex = i;
-          uncertainity.well = wells[i];
-          uncertainity.type = 'estimate';
-          uncertainity.sensor = fre;
-          uncertainity.dateHour = currentDate.toDate();
-          if (fre === 'Reservoir Pressure') {
-            var u = chance.floating({ min: 13000, max: 15000, fixed: 2 });
-            var ll = chance.floating({ min: 0, max: 1000, fixed: 2 });
-            uncertainity.est = u; // chance value?
-            uncertainity.up = u + ll;
-            uncertainity.low = u - ll;
-            uncertainity.measurement = u + chance.floating({ min: -50, max: 50, fixed: 2 });  
-          }
-          else if (fre === 'Bore Hole Pressure') {
-            var u = chance.floating({ min: 8000, max: 11000, fixed: 2 });
-            var ll = chance.floating({ min: 0, max: 500, fixed: 2 });
-            uncertainity.est = u; // chance value?
-            uncertainity.up = u + ll;
-            uncertainity.low = u - ll;
-            uncertainity.measurement = u + chance.floating({ min: -100, max: 100, fixed: 2 });  
-          }
-          else if (fre === 'Well Head Pressure') {
-            var u = chance.floating({ min: 5000, max: 7500, fixed: 2 });
-            var ll = chance.floating({ min: 0, max: 350, fixed: 2 });
-            uncertainity.est = u; // chance value?
-            uncertainity.up = u + ll;
-            uncertainity.low = u - ll;
-            uncertainity.measurement = u + chance.floating({ min: -50, max: 50, fixed: 2 });  
-          }
-          else if (fre === 'Bore Hole Temperature') {
-            var u = chance.floating({ min: 180, max: 275, fixed: 2 });
-            var ll = chance.floating({ min: 0, max: 40, fixed: 2 });
-            uncertainity.est = u; // chance value?
-            uncertainity.up = u + ll;
-            uncertainity.low = u - ll;
-            uncertainity.measurement = u + chance.floating({ min: -25, max: 25, fixed: 2 });  
-          }
-          else if (fre === 'Well Head Temperature') {
-            var u = chance.floating({ min: 100, max: 200, fixed: 2 });
-            var ll = chance.floating({ min: 0, max: 25, fixed: 2 });
-            uncertainity.est = u; // chance value?
-            uncertainity.up = u + ll;
-            uncertainity.low = u - ll;
-            uncertainity.measurement = u + chance.floating({ min: -5, max: 5, fixed: 2 });
-          }
-          else if (fre === 'Flow Rate') {
-            var u = chance.floating({ min: 1000, max: 5000, fixed: 2 });
-            var ll = chance.floating({ min: 0, max: 430, fixed: 2 });
-            uncertainity.est = u; // chance value?
-            uncertainity.up = u + ll;
-            uncertainity.low = u - ll;
-          }
+      _.each(['Reservoir Pressure', 'Bore Hole Pressure', 'Well Head Pressure', 'Bore Hole Temperature', 'Well Head Temperature', 'Flow Rate'], function(fre) {
+        var uncertainity = {};
+        uncertainity.wellIndex = i;
+        uncertainity.well = wells[i];
+        uncertainity.type = 'estimate';
+        uncertainity.sensor = fre;
+        uncertainity.dateHour = currentDate.toDate();
+        if (fre === 'Reservoir Pressure') {
+          var u = chance.floating({ min: 13000, max: 15000, fixed: 2 });
+          var ll = chance.floating({ min: 0, max: 1000, fixed: 2 });
+          uncertainity.est = u; // chance value?
+          uncertainity.up = u + ll;
+          uncertainity.low = u - ll;
+          uncertainity.measurement = u + chance.floating({ min: -50, max: 50, fixed: 2 });  
+        }
+        else if (fre === 'Bore Hole Pressure') {
+          var u = chance.floating({ min: 8000, max: 11000, fixed: 2 });
+          var ll = chance.floating({ min: 0, max: 500, fixed: 2 });
+          uncertainity.est = u; // chance value?
+          uncertainity.up = u + ll;
+          uncertainity.low = u - ll;
+          uncertainity.measurement = u + chance.floating({ min: -100, max: 100, fixed: 2 });  
+        }
+        else if (fre === 'Well Head Pressure') {
+          var u = chance.floating({ min: 5000, max: 7500, fixed: 2 });
+          var ll = chance.floating({ min: 0, max: 350, fixed: 2 });
+          uncertainity.est = u; // chance value?
+          uncertainity.up = u + ll;
+          uncertainity.low = u - ll;
+          uncertainity.measurement = u + chance.floating({ min: -50, max: 50, fixed: 2 });  
+        }
+        else if (fre === 'Bore Hole Temperature') {
+          var u = chance.floating({ min: 180, max: 275, fixed: 2 });
+          var ll = chance.floating({ min: 0, max: 40, fixed: 2 });
+          uncertainity.est = u; // chance value?
+          uncertainity.up = u + ll;
+          uncertainity.low = u - ll;
+          uncertainity.measurement = u + chance.floating({ min: -25, max: 25, fixed: 2 });  
+        }
+        else if (fre === 'Well Head Temperature') {
+          var u = chance.floating({ min: 100, max: 200, fixed: 2 });
+          var ll = chance.floating({ min: 0, max: 25, fixed: 2 });
+          uncertainity.est = u; // chance value?
+          uncertainity.up = u + ll;
+          uncertainity.low = u - ll;
+          uncertainity.measurement = u + chance.floating({ min: -5, max: 5, fixed: 2 });
+        }
+        else if (fre === 'Flow Rate') {
+          var u = chance.floating({ min: 1000, max: 5000, fixed: 2 });
+          var ll = chance.floating({ min: 0, max: 430, fixed: 2 });
+          uncertainity.est = u; // chance value?
+          uncertainity.up = u + ll;
+          uncertainity.low = u - ll;
+        }
 
-          if (fre !== 'Flow Rate') {
+        if (fre !== 'Flow Rate') {
+          var uf = chance.weighted([
+            chance.floating({min: 0, max: 10, fixed: 2}),
+            chance.floating({min: 10, max: 20, fixed: 2}),
+            chance.floating({min: 20, max: 30, fixed: 2}),
+            chance.floating({min: 30, max: 40, fixed: 2}),
+            chance.floating({min: 40, max: 50, fixed: 2}),
+            chance.floating({min: 50, max: 60, fixed: 2}),
+            chance.floating({min: 60, max: 70, fixed: 2}),
+            chance.floating({min: 70, max: 80, fixed: 2}),
+            chance.floating({min: 80, max: 90, fixed: 2}),
+            chance.floating({min: 90, max: 100, fixed: 2})
+          ], [1000000000, 100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1]);
+          uncertainity.uncertainity = uf;
+        }
+
+        // sensor data was available
+        if ((nextEvent === null || (nextSensor[fre] === null || (nextSensor[fre].isBefore(currentDate) || nextSensor[fre].isSame(currentDate)))) && chance.bool({likelihood: 90})) {
+          nextSensor[fre] = null;
+
+          var mm = {};
+          mm.wellIndex = i;
+          mm.well = wells[i];
+          mm.dateHour = currentDate.toDate();
+          mm.type = 'measurement';
+          mm.sensor = fre;
+          var qty = chance.integer({ min: 1, max: 35 });
+          _.each(_.range(qty), function(n) {
+            var other = _.clone(mm);
+            if (fre === 'Reservoir Pressure') {
+              other.measurement = chance.floating({ min: 10000, max: 20000, fixed: 2 });  
+            }
+            else if (fre === 'Bore Hole Pressure') {
+              other.measurement = chance.floating({ min: 8000, max: 11000, fixed: 2 });
+            }
+            else if (fre === 'Well Head Pressure') {
+              other.measurement = chance.floating({ min: 4000, max: 8000, fixed: 2 });
+            }
+            else if (fre === 'Bore Hole Temperature') {
+              other.measurement = chance.floating({ min: 160, max: 300, fixed: 2 });
+            }
+            else if (fre === 'Well Head Temperature') {
+              other.measurement = chance.floating({ min: 90, max: 180, fixed: 2 });
+            }
+
             var uf = chance.weighted([
               chance.floating({min: 0, max: 10, fixed: 2}),
               chance.floating({min: 10, max: 20, fixed: 2}),
@@ -138,72 +194,39 @@ MongoClient.connect(url, function(err, db) {
               chance.floating({min: 80, max: 90, fixed: 2}),
               chance.floating({min: 90, max: 100, fixed: 2})
             ], [1000000000, 100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1]);
-            uncertainity.uncertainity = uf;
-          }
+            other.uncertainity = uf;
+            if (fre !== 'Flow Rate') {
+              datasetList.push(other);
+              if (datasetList.length >= 1000) {
+                avv.insertMany(datasetList);
+                datasetList = [];
+              }
+            }
+          });
+        }
+        else {
+          // sensor data can be offline for up to 3 days max, minimum is 1 minute offline
+          nextSensor[fre] = moment(currentDate);
+          var o = chance.weighted([chance.integer({min: 1, max: 10}), chance.integer({min: 10, max: 6 * 60}), chance.integer({min: (6 * 60) + 1, max: 24 * 60}), chance.integer({min: 24 * 60, max: 3 * 24 * 60})], [100, 75, 5, 1]);
+          nextSensor[fre].add(o, 'minutes');
+        
+          delete uncertainity.measurement;
+        }
 
-          // sensor data was available
-          if ((nextSensor[fre] === null || (nextSensor[fre].isBefore(currentDate) || nextSensor[fre].isSame(currentDate))) && chance.bool({likelihood: 90})) {
-            nextSensor[fre] = null;
-
-            var mm = {};
-            mm.wellIndex = i;
-            mm.well = wells[i];
-            mm.dateHour = currentDate.toDate();
-            mm.type = 'measurement';
-            mm.sensor = fre;
-            var qty = chance.integer({ min: 1, max: 35 });
-            _.each(_.range(qty), function(n) {
-              var other = _.clone(mm);
-              if (fre === 'Reservoir Pressure') {
-                other.measurement = chance.floating({ min: 10000, max: 20000, fixed: 2 });  
-              }
-              else if (fre === 'Bore Hole Pressure') {
-                other.measurement = chance.floating({ min: 8000, max: 11000, fixed: 2 });
-              }
-              else if (fre === 'Well Head Pressure') {
-                other.measurement = chance.floating({ min: 4000, max: 8000, fixed: 2 });
-              }
-              else if (fre === 'Bore Hole Temperature') {
-                other.measurement = chance.floating({ min: 160, max: 300, fixed: 2 });
-              }
-              else if (fre === 'Well Head Temperature') {
-                other.measurement = chance.floating({ min: 90, max: 180, fixed: 2 });
-              }
-
-              var uf = chance.weighted([
-                chance.floating({min: 0, max: 10, fixed: 2}),
-                chance.floating({min: 10, max: 20, fixed: 2}),
-                chance.floating({min: 20, max: 30, fixed: 2}),
-                chance.floating({min: 30, max: 40, fixed: 2}),
-                chance.floating({min: 40, max: 50, fixed: 2}),
-                chance.floating({min: 50, max: 60, fixed: 2}),
-                chance.floating({min: 60, max: 70, fixed: 2}),
-                chance.floating({min: 70, max: 80, fixed: 2}),
-                chance.floating({min: 80, max: 90, fixed: 2}),
-                chance.floating({min: 90, max: 100, fixed: 2})
-              ], [1000000000, 100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1]);
-              other.uncertainity = uf;
-              if (fre !== 'Flow Rate') {
-                avv.insert(other);
-              }
-            });
-          }
-          else {
-            // sensor data can be offline for up to 3 days max, minimum is 1 minute offline
-            nextSensor[fre] = moment(currentDate);
-            var o = chance.weighted([chance.integer({min: 1, max: 10}), chance.integer({min: 10, max: 6 * 60}), chance.integer({min: (6 * 60) + 1, max: 24 * 60}), chance.integer({min: 24 * 60, max: 3 * 24 * 60})], [100, 75, 5, 1]);
-            nextSensor[fre].add(o, 'minutes');
-          
-            delete uncertainity.measurement;
-          }
-
-          //console.log('aaa', uncertainity);
-          avv.insert(uncertainity);
-        });
-      }
+        datasetList.push(uncertainity);
+        if (datasetList.length >= 1000) {
+          avv.insertMany(datasetList);
+          datasetList = [];
+        }
+      });
 
       currentDate.add(1, 'minutes');
+      //console.log(currentDate.toString(), index++);
     }
+
+    console.log('eventlist', eventList.length);
+    ec.insertMany(eventList);
+    avv.insertMany(datasetList);
   });
 
   db.close();

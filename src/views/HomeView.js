@@ -149,24 +149,6 @@ export default class HomeView extends Component {
     });
   }
 
-  drawEventTimeline() {
-    // https://fbe94b5b83362330a8429bb16098a3285147bcbf.googledrive.com/host/0Bz6WHrWac3FrZUtuOExWdlRGVG8//proximitynetwork.html
-  }
-
-  drawSensorPlot() {
-    // http://phatduino.com.w010a51b.kasserver.com/visavail/example.htm
-  }
-
-  drawEdgeCoordinates() {
-    // TODO
-  }
-
-  drawRadialMenu() {
-    // Options
-    //  Remove
-    //  Info, Model (shows the distrubution curve), Filter, Report
-  }
-
   drawChart() {
     const margin = { top: 25, right: 55, bottom: 100, left: 75 };
 
@@ -227,18 +209,8 @@ export default class HomeView extends Component {
             timeFormat = '%B';
           }
 
-          function zoomed() {
-            graph.attr('transform', 'translate(' + d3.event.translate + ')scale(' + d3.event.scale + ')');
-          }
-
-          const zoom = d3.behavior.zoom()
-            .scaleExtent([1, 10])
-            .on('zoom', function() {
-              zoomed();
-            });
-
           const resetBtn = document.getElementById(`${k}-reset-btn`);
-          function brushend() {
+          /*function brushend() {
             resetBtn.style.display = 'block';
 
             x.domain(brush.extent());
@@ -257,7 +229,7 @@ export default class HomeView extends Component {
             }
 
             resetBtn.addEventListener('click', processReset.bind(this));
-          }
+          }*/
 
           function transitionData() {
             primary.select('.line')
@@ -296,15 +268,6 @@ export default class HomeView extends Component {
           const yAxis = d3.svg.axis()
             .scale(y)
             .orient('left');
-
-          const brush = d3.svg.brush()
-            .x(x)
-            .on('brushend', brushend.bind(this));
-
-          const tooltip = d3.select(el)
-            .append('div')
-              .attr('class', 'tooltip')
-              .style('opacity', 0);
 
           const inferred = this.props.chart.styles.inferred;
           const line = d3.svg.line()
@@ -363,14 +326,56 @@ export default class HomeView extends Component {
                 .attr('id', 'clip-rect')
                 .attr('x', '0')
                 .attr('y', '0')
-                .attr('width', width )
+                .attr('width', width)
                 .attr('height', height);
 
           const primary = svg
             .append('g')
               .attr('class', 'primary')
-              .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-              .call(zoom);
+              .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+          const xRef = x;
+          const yRef = y;
+          const dataRef = this.props.data[k];
+          const bisectDate = d3.bisector((d) => { return d.dateHour; }).left;
+          primary
+            .on('contextmenu', function () {
+              d3.event.preventDefault();
+
+              const mouse = d3.mouse(this);
+              const mouseDate = xRef.invert(mouse[0]);
+              const i = bisectDate(dataRef, mouseDate); // not sure the this instance is valid here
+
+              d3.selectAll('#' + k + '-menu').html('');
+              const list = d3.selectAll('#' + k + '-menu').append('ul');
+              list.selectAll('li').data([
+              {
+                title: 'View Model',
+                action: function(elm, d, i) {
+                  /// Show a popup view that takes up the entire screen (not the header or sidebar) the following information
+                  /// * The simulation graph as scatter points and curve fit
+                  /// * Well name
+                  /// * Small map showing well location
+                  /// * DateTime (part of the graph)
+                  /// * ability to close the overlay
+                }
+              }])
+                .enter()
+                .append('li')
+                .html(function(d) {
+                  return d.title;
+                })
+                .on('click', function(d, i) {
+                  // d.action(elm, data, index);
+                  // TODO
+                  d3.select(k + '-menu').style('display', 'none');
+                });
+
+              d3.select('#' + k + '-menu')
+                .style('left', (d3.event.pageX - 216) + 'px') // note this is not responsive, should account for sidebar being visible
+                .style('top', (d3.event.pageY - 52) + 'px') // note this is not responsive, should account for header being visible
+                .style('display', 'block');
+            });
               
           const graph =
             primary.append('g')
@@ -443,62 +448,7 @@ export default class HomeView extends Component {
             .style('fill', 'white')
             .style('stroke', rgbToHex(+inferred.strokeColor.r, +inferred.strokeColor.g, +inferred.strokeColor.b))
             .style('stroke-width', inferred.strokeWidth + 'px')
-            .style('stroke-opacity', +inferred.strokeColor.a)
-            .on('contextmenu', function (d,i) {
-              
-
-              //d3.event.preventDefault();
-            });
-
-          if (this.props.chart.settings.showEdgeCoordinates) {
-            const focus = primary.append('g').style('display', 'none');
-            focus.append('line')
-              .attr('id', 'focusLineX')
-              .attr('class', 'focusLine');
-            focus.append('line')
-              .attr('id', 'focusLineY')
-              .attr('class', 'focusLine');
-            focus.append('rect')
-              .attr('id', 'focusXCoordinate')
-              .attr('class', 'focusCoordinate');
-            focus.append('rect')
-              .attr('id', 'focusYCoordinate')
-              .attr('class', 'focusCoordinate');
-
-            const xRef = x;
-            const yRef = y;
-            const dataRef = this.props.data[k];
-            const bisectDate = d3.bisector((d) => { return d.dateHour; }).left;
-            primary.append('rect')
-              .attr('class', 'overlay') // add to css
-              .attr('width', width)
-              .attr('height', height)
-              .on('mouseover', () => { focus.style('display', null); })
-              .on('mouseout', () => { focus.style('display', 'none'); })
-              .on('mousemove', function() { 
-                const mouse = d3.mouse(this);
-                const mouseDate = xRef.invert(mouse[0]);
-                const i = bisectDate(dataRef, mouseDate); // not sure the this instance is valid here
-                
-                const d0 = dataRef[i - 1]
-                const d1 = dataRef[i];
-                // work out which date value is closest to the mouse
-                const d = mouseDate - d0.dateHour > d1.dateHour - mouseDate ? d1 : d0;
-
-                const x = xRef(d.dateHour);
-                const y = yRef(yRef.invert(mouse[1]));
-
-                focus.select('#focusLineX')
-                  .attr('x1', x).attr('y1', yRef(minValue))
-                  .attr('x2', x).attr('y2', yRef(maxValue));
-                focus.select('#focusLineY')
-                  .attr('x1', xRef(minDate)).attr('y1', y)
-                  .attr('x2', xRef(maxDate)).attr('y2', y);
-                //focus.selexct('#focusXCoordinate')
-                //  .attr('x1', xRef(minDate)).attr('y1', y)
-                //  .attr('x2', xRef(maxDate)).attr('y2', y);
-              });
-          }
+            .style('stroke-opacity', +inferred.strokeColor.a);
 
           primary
             .append('g')
@@ -522,19 +472,103 @@ export default class HomeView extends Component {
             .attr('transform', 'translate(' + (padding * -1) + ',' + (height / 2) + ')rotate(-90)')
             .text(k === 'whp' || k === 'bhp' || k === 'rp' ? 'Pressure (PSI)' : k === 'q' ? 'Flow Rate (Mcf)' : 'Temperature (Kelvin)');
 
-          graph.append('g')
-            .attr('class', 'x brush')
-            .call(brush)
-          .selectAll('rect')
-            .attr('y', -6)
-            .attr('height', height + 7);
+          if (this.props.chart.settings.showEdgeCoordinates) {
+            const focus = primary.append('g').style('display', 'none');
+            focus.append('line')
+              .attr('id', 'focusLineX')
+              .attr('class', 'focusLine');
+            focus.append('line')
+              .attr('id', 'focusLineY')
+              .attr('class', 'focusLine');
+            focus.append('rect')
+              .attr('id', 'focusXCoordinate')
+              .attr('class', 'focusCoordinate')
+              .attr('height', 20)
+              .attr('width', 130)
+              .attr('fill', '#B8B8B8')
+              .attr('fill-opacity', 0.85)
+              .attr('stroke', '#5C5C5C')
+              .attr('stroke-width', 1.3);
+            focus.append('text')
+              .attr('id', 'focusXCoordinateText')
+              .attr('class', 'focusCoordinateText')
+              .attr('fill', '#000000');
+            focus.append('rect')
+              .attr('id', 'focusYCoordinate')
+              .attr('class', 'focusCoordinate')
+              .attr('height', 20)
+              .attr('width', 50)
+              .attr('fill', '#B8B8B8')
+              .attr('fill-opacity', 0.85)
+              .attr('stroke', '#5C5C5C')
+              .attr('stroke-width', 1.3);
+            focus.append('text')
+              .attr('id', 'focusYCoordinateText')
+              .attr('class', 'focusCoordinateText')
+              .attr('fill', '#000000');
+
+            primary.append('rect')
+              .attr('class', 'overlay') // add to css
+              .attr('width', width)
+              .attr('height', height)
+              .on('mouseover', () => { focus.style('display', null); })
+              .on('mouseout', () => {
+                focus.style('display', 'none');
+                d3.select('#' + k + '-tooltip')
+                  .html('');
+              })
+              .on('mousemove', function() { 
+                const mouse = d3.mouse(this);
+                const mouseDate = xRef.invert(mouse[0]);
+                const i = bisectDate(dataRef, mouseDate); // not sure the this instance is valid here
+                
+                const d0 = dataRef[i - 1]
+                const d1 = dataRef[i];
+                // work out which date value is closest to the mouse
+                const d = mouseDate - d0.dateHour > d1.dateHour - mouseDate ? d1 : d0;
+
+                const x = xRef(d.dateHour);
+                const y = yRef(yRef.invert(mouse[1]));
+
+                focus.select('#focusLineX')
+                  .attr('x1', x).attr('y1', yRef(minValue))
+                  .attr('x2', x).attr('y2', yRef(maxValue));
+                focus.select('#focusLineY')
+                  .attr('x1', xRef(minDate)).attr('y1', y)
+                  .attr('x2', xRef(maxDate)).attr('y2', y);
+                focus.select('#focusXCoordinate')
+                  .attr('x', x - 65)
+                  .attr('y', yRef(minValue) + 2);
+                focus.select('#focusXCoordinateText')
+                  .attr('x', x - 60)
+                  .attr('y', yRef(minValue) + 17)
+                  .text(moment(d.dateHour).format('MMM D, YYYY HH:00'));
+                focus.select('#focusYCoordinate')
+                  .attr('x', -50)
+                  .attr('y', y - 10);
+                focus.select('#focusYCoordinateText')
+                  .attr('x', -45)
+                  .attr('y', y + 5)
+                  .text(yRef.invert(mouse[1]).toFixed(0));
+
+                let tooltip = 'Date: <strong>' + moment(d.dateHour).format('MMM D, YYYY HH:00') + '</strong>, Inferred: <strong>' + d.est.toFixed(2) + '</strong>, Inferred Upper Bound: <strong>' + d.up.toFixed(2) + '</strong>, Inferred Lower Bound: <strong>' + d.low.toFixed(2) + '</strong>';
+                if (d.measurement) {
+                  tooltip += ', Measurement: <strong>' + d.measurement.toFixed(2) + '</strong>';
+                  const offset = (d.est - d.measurement);
+                  tooltip += ', Measurement Offset: <strong>' + (offset < 0 ? offset * -1 : offset).toFixed(2) + '</strong>';
+                }
+                // now show the tooltip as text at the top of the graph
+                d3.select('#' + k + '-tooltip')
+                  .style('width', width + 'px')
+                  .html(tooltip);
+              });
+          }
 
           if (k !== 'q') {
             this.drawMeasurements(k, graph, x, y);
           }
 
           if (this.props.chart.settings.showLegend) {
-            console.log('drawing legend');
             this.drawLegend(k, primary);
           }
         }
@@ -543,13 +577,21 @@ export default class HomeView extends Component {
   }
 
   render() {
-    console.log('render');
-
     let charts;
     if (!this.props.chart.settings.stackCharts) {
       const set = Object.keys(this.props.chart.opdatasets).map(k => {
         if (this.props.chart.opdatasets[k]) {
-          return <div className="col-xs-12 col-sm-6"><a href="#" className="btn btn-default btn-xs" style={{left: '116px', top: '22px', position: 'absolute'}}><i className="fa fa-expand"></i></a><a href="#"  id={k + '-reset-btn'} className="btn btn-default btn-xs" style={{left: '170px', top: '22px', position: 'absolute', display: 'none'}}><i className="fa fa-search-minus"></i></a><div key={`${k}-chart`} id={`${k}-chart`} style={{margin: '25px'}}></div></div>;
+          return (<div key={`${k}-chart`} className="col-xs-12 col-sm-6">
+              <a href="#" className="btn btn-default btn-xs" style={{left: '116px', top: '22px', position: 'absolute'}}>
+                <i className="fa fa-expand"></i>
+              </a>
+              <a href="#" id={k + '-reset-btn'} className="btn btn-default btn-xs" style={{left: '170px', top: '22px', position: 'absolute', display: 'none'}}>
+                <i className="fa fa-search-minus"></i>
+              </a>
+              <div id={`${k}-tooltip`} style={{left: '116px', top: '44px', fontSize: '11px', position: 'absolute', wordWrap: 'break-word'}}></div>
+              <div id={`${k}-menu`} className='d3-context-menu' style={{display: 'none'}}></div>
+              <div id={`${k}-chart`} style={{margin: '73px 25px 25px 25px'}}></div>
+            </div>);
         }
       });
 
