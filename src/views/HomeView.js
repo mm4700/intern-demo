@@ -82,16 +82,13 @@ export default class HomeView extends Component {
   }
 
   drawMeasurements(k, primary, x, y) {
-    const xMap = d => { return x(new Date(d.dateHour)); };
-    const yMap = d => { return y(d.measurement); };
-
     let sensorMeasurement = this.props.chart.styles.measurement;
     primary
       .selectAll('.chart')
       .data(this.props.data[k].filter(d => d.measurement !== null))
       .enter()
       .append('circle')
-        .attr('class', 'dot')
+        .attr('class', 'measurement')
         .style('fill', rgbToHex(+sensorMeasurement.fillColor.r, +sensorMeasurement.fillColor.g, +sensorMeasurement.fillColor.b))
         .style('fill-opacity', +sensorMeasurement.fillColor.a)
         .style('stroke', rgbToHex(+sensorMeasurement.strokeColor.r, +sensorMeasurement.strokeColor.g, +sensorMeasurement.strokeColor.b))
@@ -99,15 +96,20 @@ export default class HomeView extends Component {
         .style('stroke-width', sensorMeasurement.strokeWidth + 'px')
         .style('stroke-dasharray', sensorMeasurement.dashArray)
         .attr('r', +sensorMeasurement.radius)
-        .attr('cx', xMap)
-        .attr('cy', yMap);
+        .attr('cx', d => { return x(new Date(d.dateHour)); })
+        .attr('cy', d => { return y(d.measurement); });
   }
 
   drawLegend(k, primary) {
+    let yOffset = 385;
+    if (this.props.chart.settings.enableZoomControl) {
+      yOffset += 50;
+    }
+
     let legend =
       primary.append('g')
           .attr('class', 'legend')
-          .attr('transform', (d, i) => { return 'translate(0,' + 385 + ')'; });
+          .attr('transform', (d, i) => { return 'translate(0,' + yOffset + ')'; });
 
     const legendItems = [
       { id: 'inferred', name: 'Inferred' },
@@ -151,6 +153,9 @@ export default class HomeView extends Component {
 
   drawChart() {
     const margin = { top: 25, right: 55, bottom: 100, left: 75 };
+    if (this.props.chart.settings.enableZoomControl) {
+      margin.bottom = 150;
+    }
 
     if (this.props.chart.settings.stackCharts) {
       const el = document.getElementById('chart-container');
@@ -171,7 +176,10 @@ export default class HomeView extends Component {
           }
 
           const width = el.clientWidth - margin.left - margin.right;
-          const height = 450 - margin.top - margin.bottom;
+          let height = 450 - margin.top - margin.bottom;
+          if (this.props.chart.settings.enableZoomControl) {
+            height = 500 - margin.top - margin.bottom;
+          }
     
           const svg = d3.select(el)
             .append('svg')
@@ -208,28 +216,6 @@ export default class HomeView extends Component {
           else if (this.props.chart.filters.grouping === 'monthly') {
             timeFormat = '%B';
           }
-
-          const resetBtn = document.getElementById(`${k}-reset-btn`);
-          /*function brushend() {
-            resetBtn.style.display = 'block';
-
-            x.domain(brush.extent());
-
-            transitionData.call(this);
-            resetAxis();
-
-            d3.select('.brush').call(brush.clear()); // not clearing all brushes
-
-            function processReset() {
-              x.domain([minDate, maxDate]);
-              transitionData.call(this);
-              resetAxis();
-              resetBtn.removeEventListener('click', processReset);
-              resetBtn.style.display = 'none';
-            }
-
-            resetBtn.addEventListener('click', processReset.bind(this));
-          }*/
 
           function transitionData() {
             primary.select('.line')
@@ -406,63 +392,80 @@ export default class HomeView extends Component {
             .attr('class', 'dot')
             .attr('cx', line.x())
             .attr('cy', line.y())
-            .attr('r', 10)
+            .attr('r', 4)
             .style('fill', 'white')
             .style('stroke', rgbToHex(+inferred.strokeColor.r, +inferred.strokeColor.g, +inferred.strokeColor.b))
             .style('stroke-width', inferred.strokeWidth + 'px')
             .style('stroke-opacity', +inferred.strokeColor.a);
 
-          primary
-            .on('contextmenu', function () { // should be for dots only
-              const mouse = d3.mouse(this);
-              const mouseDate = xRef.invert(mouse[0]);
-              const i = bisectDate(dataRef, mouseDate); // not sure the this instance is valid here
+          if (this.props.chart.settings.enableDataPointInteraction) {
+            const filtersRefInner = this.props.chart.filters;
+            primary
+              .on('contextmenu', function () { // should be for dots only
+                const mouse = d3.mouse(this);
+                const mouseDate = xRef.invert(mouse[0]);
+                const i = bisectDate(dataRef, mouseDate); // not sure the this instance is valid here
 
-              // verify the y coordinate matches the estimate
-              const d0 = dataRef[i - 1]
-              const d1 = dataRef[i];
-              // work out which date value is closest to the mouse
-              const d = mouseDate - d0.dateHour > d1.dateHour - mouseDate ? d1 : d0;
+                // verify the y coordinate matches the estimate
+                const d0 = dataRef[i - 1]
+                const d1 = dataRef[i];
+                // work out which date value is closest to the mouse
+                const d = mouseDate - d0.dateHour > d1.dateHour - mouseDate ? d1 : d0;
 
-              const x = xRef(d.dateHour);
-              const y = yRef(yRef.invert(mouse[1]));
+                const x = xRef(d.dateHour);
+                const y = yRef(yRef.invert(mouse[1]));
 
-              if (!(y >= yRef(d.est) - 5 && y <= yRef(d.est) + 5)) {
-                return;
-              }
-
-              d3.selectAll('#' + k + '-menu').html('');
-              const list = d3.selectAll('#' + k + '-menu').append('ul');
-              list.selectAll('li').data([
-              {
-                title: 'View Model',
-                action: function(elm, d, i) {
-                  /// Show a popup view that takes up the entire screen (not the header or sidebar) the following information
-                  /// * The simulation graph as scatter points and curve fit
-                  /// * Well name
-                  /// * Small map showing well location
-                  /// * DateTime (part of the graph)
-                  /// * ability to close the overlay
+                if (!(y >= yRef(d.est) - 5 && y <= yRef(d.est) + 5)) {
+                  return;
                 }
-              }])
-                .enter()
-                .append('li')
-                .html(function(d) {
-                  return d.title;
-                })
-                .on('click', function(d, i) {
-                  // d.action(elm, data, index);
-                  // TODO
-                  d3.select(k + '-menu').style('display', 'none');
-                });
 
-              d3.select('#' + k + '-menu')
-                .style('left', (d3.event.pageX - 216) + 'px') // note this is not responsive, should account for sidebar being visible
-                .style('top', (d3.event.pageY - 52) + 'px') // note this is not responsive, should account for header being visible
-                .style('display', 'block');
+                d3.selectAll('#' + k + '-menu').html('');
+                const list = d3.selectAll('#' + k + '-menu').append('ul');
+                list.selectAll('li').data([{
+                    title: 'View Model'
+                  }])
+                  .enter()
+                  .append('li')
+                  .html(function(d) {
+                    return '<a href="#modelModal" style="color: inherit;">' + d.title + '</a>';
+                  })
+                  .on('click', function(d, i) {
+                    document.getElementById('uncertanityModelDetails').innerHTML = 
+                      '<div>Well: <strong>' + filtersRefInner.well + '</strong></div>' +
+                      '<div>Opdataset: <strong>' + datasetMap[k] + '</strong></div>' +
+                      '<div id="model-chart"></div>';
 
-              d3.event.preventDefault();
-            });
+                    // now fetch the data and draw the chart
+                    let startDate;
+                    let endDate;
+                    if (filtersRefInner.grouping === 'hourly') {
+                      startDate = moment(d.dateHour).startOf('hour');
+                      endDate = moment(d.dateHour).endOf('hour');
+                    }
+                    else if (filtersRefInner.grouping === 'daily') {
+                      startDate = moment(d.dateHour).startOf('day');
+                      endDate = moment(d.dateHour).endOf('day');
+                    }
+                    else if (filtersRefInner.grouping === 'weekly') {
+                      startDate = moment(d.dateHour).startOf('week');
+                      endDate = moment(d.dateHour).endOf('week');
+                    }
+                    else if (filtersRefInner.grouping === 'monthly') {
+                      startDate = moment(d.dateHour).startOf('month');
+                      endDate = moment(d.dateHour).endOf('month');
+                    }
+
+                    d3.select('#' + k + '-menu').style('display', 'none');
+                  });
+
+                d3.select('#' + k + '-menu')
+                  .style('left', (d3.event.pageX - 216) + 'px') // note this is not responsive, should account for sidebar being visible
+                  .style('top', (d3.event.pageY - 52) + 'px') // note this is not responsive, should account for header being visible
+                  .style('display', 'block');
+
+                d3.event.preventDefault();
+              });
+          }
 
           primary
             .append('g')
@@ -479,10 +482,92 @@ export default class HomeView extends Component {
               .attr('class', 'y axis')
               .call(yAxis);
 
+          if (this.props.chart.settings.enableZoomControl) {
+            const xMini = d3.time.scale()
+              .domain([
+                minDate,
+                maxDate
+              ])
+              .range([0, width]);
+
+            const yMini = d3.scale.linear().range([35, 0])
+              .domain([
+                minValue,
+                maxValue
+              ]);
+
+            const yMiniAxis = d3.svg.axis()
+              .scale(yMini)
+              .ticks(3)
+              .orient('left');
+
+            let zoomControl =
+              primary.append('g')
+                .attr('class', 'zoom')
+                .attr('transform', (d, i) => { return 'translate(0,' + 385 + ')'; });
+
+            zoomControl
+              .append('g')
+                .attr('class', 'x axis')
+                .attr('transform', 'translate(0,35)')
+                .call(xAxis)
+                .selectAll('text')
+                  .attr('transform', function(d) {
+                    return 'translate(' + this.getBBox().height*-1 + ',' + this.getBBox().height + ')rotate(-45)';
+                  });
+
+            zoomControl
+              .append('g')
+                .attr('class', 'y axis')
+                .call(yMiniAxis);
+
+            const brush = d3.svg.brush()
+              .x(xMini)
+              .on('brush', brushed);
+
+            zoomControl.append('g')
+              .attr('class', 'x brush')
+              .call(brush)
+            .selectAll('rect')
+              .attr('y', -6)
+              .attr('height', 35 + 7);
+
+            const resetBtn = document.getElementById(`${k}-reset-btn`);
+            const settingsRef = this.props.chart.settings;
+            function brushed() {
+              resetBtn.style.display = 'block';
+
+              x.domain(brush.empty() ? xMini.domain() : brush.extent());
+              primary.select('.line').attr('d', line);
+              primary.selectAll('.dot').attr('cx', line.x()).attr('cy', line.y());
+              primary.selectAll('.measurement').attr('cx', d => { return x(new Date(d.dateHour)); });
+              if (settingsRef.showUncertainityBounds) {
+                primary.select('.line-upper').attr('d', inferredBounds[0]);
+                primary.select('.line-lower').attr('d', inferredBounds[1]);
+              }
+
+              if (settingsRef.showUncertainityBand) {
+                primary.select('.area').attr('d', inferredBand);
+              }
+              primary.select('.x.axis').call(xAxis);
+
+              function processReset() {
+                x.domain([minDate, maxDate]);
+
+                d3.selectAll('.brush').call(brush.clear());
+                
+                resetBtn.removeEventListener('click', processReset);
+                resetBtn.style.display = 'none';
+              }
+
+              resetBtn.addEventListener('click', processReset);
+            }
+          }
+
           // Axis Titles
           const padding = (k === 'whp' || k === 'bhp' || k === 'rp') ? 65 : 55;
           primary.append('text')
-            .attr('text-anchor', 'middle') 
+            .attr('text-anchor', 'middle')
             .attr('transform', 'translate(' + (padding * -1) + ',' + (height / 2) + ')rotate(-90)')
             .text(k === 'whp' || k === 'bhp' || k === 'rp' ? 'Pressure (PSI)' : k === 'q' ? 'Flow Rate (Mcf)' : 'Temperature (Kelvin)');
 
@@ -521,6 +606,7 @@ export default class HomeView extends Component {
               .attr('class', 'focusCoordinateText')
               .attr('fill', '#000000');
 
+            const enableTooltips = this.props.chart.settings.enableTooltips;
             primary.append('rect')
               .attr('class', 'overlay') // add to css
               .attr('width', width)
@@ -565,16 +651,18 @@ export default class HomeView extends Component {
                   .attr('y', y + 5)
                   .text(yRef.invert(mouse[1]).toFixed(0));
 
-                let tooltip = 'Date: <strong>' + moment(d.dateHour).format('MMM D, YYYY HH:00') + '</strong>, Inferred: <strong>' + d.est.toFixed(2) + '</strong>, Inferred Upper Bound: <strong>' + d.up.toFixed(2) + '</strong>, Inferred Lower Bound: <strong>' + d.low.toFixed(2) + '</strong>';
-                if (d.measurement) {
-                  tooltip += ', Measurement: <strong>' + d.measurement.toFixed(2) + '</strong>';
-                  const offset = (d.est - d.measurement);
-                  tooltip += ', Measurement Offset: <strong>' + (offset < 0 ? offset * -1 : offset).toFixed(2) + '</strong>';
+                if (enableTooltips) {
+                  let tooltip = 'Date: <strong>' + moment(d.dateHour).format('MMM D, YYYY HH:00') + '</strong>, Inferred: <strong>' + d.est.toFixed(2) + '</strong>, Inferred Upper Bound: <strong>' + d.up.toFixed(2) + '</strong>, Inferred Lower Bound: <strong>' + d.low.toFixed(2) + '</strong>';
+                  if (d.measurement) {
+                    tooltip += ', Measurement: <strong>' + d.measurement.toFixed(2) + '</strong>';
+                    const offset = (d.est - d.measurement);
+                    tooltip += ', Measurement Offset: <strong>' + (offset < 0 ? offset * -1 : offset).toFixed(2) + '</strong>';
+                  }
+                  // now show the tooltip as text at the top of the graph
+                  d3.select('#' + k + '-tooltip')
+                    .style('width', width + 'px')
+                    .html(tooltip);
                 }
-                // now show the tooltip as text at the top of the graph
-                d3.select('#' + k + '-tooltip')
-                  .style('width', width + 'px')
-                  .html(tooltip);
               });
           }
 
@@ -620,6 +708,14 @@ export default class HomeView extends Component {
     return (
       <div className="main-container">
         {charts}
+        <div id="modelModal" className="modalDialog">
+          <div>
+            <a href="#close" title="Close" className="close">X</a>
+            <h3 style={{textDecoration: 'underline', marginTop: '5px'}}>Uncertainty Model</h3>
+            <div id="uncertanityModelDetails">
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

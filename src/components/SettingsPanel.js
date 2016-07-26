@@ -16,6 +16,7 @@ export class SettingsPanel extends Component {
       showEdgeCoordinates: true,
       enableTooltips: true,
       enableDataPointInteraction: false,
+      enableZoomControl: false,
     };
 
     this.handleSettingChange = this.handleSettingChange.bind(this);
@@ -46,7 +47,7 @@ export class SettingsPanel extends Component {
               <div className="col-xs-12" style={{marginTop: '10px'}}>
                 <label className="col-xs-12 col-sm-5" style={{height: '20px',padding: 0,fontSize: '12px',marginBottom: 0,lineHeight: '20px'}}>Stack Charts</label>
                 <label className="switch-toggle col-xs-7" style={{display: 'block'}}>
-                  <input type="checkbox" name="stackCharts" id="stackCharts" checked={this.state.stackCharts} onChange={this.handleSettingChange} />
+                  <input type="checkbox" name="stackCharts" id="stackCharts" disabled checked={this.state.stackCharts} onChange={this.handleSettingChange} />
                   <span style={{background: 'rgba(255, 255, 255, 0.37)', boxShadow: 'inset 0 0 0 .0625em rgba(228, 238, 240, 0)'}}></span>
                 </label>
               </div>
@@ -107,6 +108,16 @@ export class SettingsPanel extends Component {
                   <div className="custom-checkbox font-12 no-animation">
                     <input type="checkbox" name="enableDataPointInteraction" id="enableDataPointInteraction" checked={this.state.enableDataPointInteraction} onChange={this.handleSettingChange} />
                     <label htmlFor="enableDataPointInteraction">Enable Data Interaction</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="form-group">
+              <div className="col-xs-12">
+                <div className="checkbox">
+                  <div className="custom-checkbox font-12 no-animation">
+                    <input type="checkbox" name="enableZoomControl" id="enableZoomControl" checked={this.state.enableZoomControl} onChange={this.handleSettingChange} />
+                    <label htmlFor="enableZoomControl">Enable Zoom Control</label>
                   </div>
                 </div>
               </div>

@@ -89,6 +89,7 @@ const initialState = {
       showEdgeCoordinates: true,
       enableTooltips: true,
       enableDataPointInteraction: false,
+      enableZoomControl: false,
     }
   }
 };

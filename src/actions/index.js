@@ -93,3 +93,39 @@ export function fetchEvents(opts) {
       });
   };
 }
+
+// ------
+export function receiveMeasurements(data) {
+  return {
+    type: RECEIVE_MEASUREMENTS,
+    payload: {
+      data: data
+    }
+  };
+}
+
+export function fetchMeasurementsRequest() {
+  return {
+    type: FETCH_MEASUREMENTS_REQUEST
+  };
+}
+
+export function fetchMeasurements(opts) {
+  return (dispatch, state) => {
+    dispatch(fetchDataRequest());
+    const data = { startDate: opts.startDate, endDate: opts.endDate, well: opts.well, sensor: opts.sensor };
+    return new Promise((resolve, reject) => {
+      agent.post('http://localhost:5001/api/v1/measurements')
+        .send(data)
+        .set('Accept', 'application/json')
+        .end((err, response) => {
+          if (err) {
+            return reject(err);
+          }
+
+          dispatch(receiveMeasurements(response.body));
+          resolve();
+        })
+      });
+  };
+}

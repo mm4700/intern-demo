@@ -3,3 +3,5 @@ export const RECEIVE_DATA = 2;
 export const CONFIGURE_CHART = 3;
 export const RECEIVE_EVENTS = 4;
 export const FETCH_EVENTS_REQUEST = 5;
+export const RECEIVE_MEASUREMENTS = 6;
+export const FETCH_MEASUREMENTS_REQUEST = 7;

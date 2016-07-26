@@ -127,6 +127,20 @@ app.post('/api/v1/events', function(req, res) {
   });
 });
 
+app.post('/api/v1/measurements', function(req, res) {
+  db.events.find({
+    well: req.body.well,
+    type: 'measurement',
+    sensor: datasetMap[req.params.sensor],
+    dateHour : {
+      '$gte' : new Date(req.body.startDate),
+      '$lte' : new Date(req.body.endDate)
+    }
+  }).toArray(function(err, results) {
+    res.status(200).send(results);
+  });
+});
+
 app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname, '../build/index.html'));
 });

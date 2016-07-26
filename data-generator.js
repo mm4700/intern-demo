@@ -57,8 +57,8 @@ MongoClient.connect(url, function(err, db) {
 
     let index = 1;
     while (currentDate.isBefore(endDate)) {
-      var eventChance = chance.weighted([0, 1, 2, 3, 4, 5, 6], [10000, 1, 34, 12, 12, 42, 20]);
-      if (eventChance !== 0) {
+      var eventChance = chance.weighted([0, 1, 2, 3, 4, 5, 6], [50000, 1, 34, 12, 12, 42, 20]);
+      if (nextEvent === null && eventChance !== 0) {
         var e = {};
         e.wellIndex = i;
         e.well = wells[i];
