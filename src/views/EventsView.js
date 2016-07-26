@@ -115,10 +115,11 @@ export default class EventsView extends Component {
         .attr('class', 'y axis')
         .call(yAxis);
 
+    const colors = ['#fc8d62','#a6d854','#b3b3b3','#8da0cb','#ffd92f','#66c2a5','#e78ac3'];
+
     // draw the actual events
     const dataRef = this.props.events;
     const myData = this.props.events.filter((d, i) => { return i !== 0; });
-    console.log('myData', myData);
     myData.forEach((data) => {
       svg.append('rect')
         .datum(data)
@@ -126,7 +127,13 @@ export default class EventsView extends Component {
         .attr('x', (d) => { console.log('x', d); return x(new Date(d.dateHour)); })
         .attr('y', (d) => { return y(100); })
         .attr('width', (d, i) => { return x(new Date(dataRef[i + 1].dateHour)) - x(new Date(dataRef[i].dateHour)); })
-        .attr('height', (d) => { return y(0); });
+        .attr('height', (d) => { return y(0); })
+        .attr('fill', (d, i) => { return colors[i % 7]; })
+        .attr('fill-opacity', 0.5)
+        .attr('stroke', '#000000')
+        .attr('stroke-linecap', 'butt')
+        .attr('stroke-linejoin', 'round')
+        .attr('stroke-opacity', 0.5);
 
 
       // add hover

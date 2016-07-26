@@ -119,14 +119,14 @@ export default class HomeView extends Component {
     let nextX = 0;
     _.each(legendItems, (item, i) => {
       legend
-        .append('rect')
-          .attr('x', nextX)
-          .attr('width', 25)
-          .attr('height', 10)
-          .style('fill', 'white')
+        .append('circle')
+          .attr('cx', nextX)
+          .attr('cy', 4)
+          .attr('r', 5)
+          .style('fill', rgbToHex(+this.props.chart.styles[item.id].strokeColor.r, +this.props.chart.styles[item.id].strokeColor.g, +this.props.chart.styles[item.id].strokeColor.b))
           .style('stroke', rgbToHex(+this.props.chart.styles[item.id].strokeColor.r, +this.props.chart.styles[item.id].strokeColor.g, +this.props.chart.styles[item.id].strokeColor.b));
     
-      nextX += 30;
+      nextX += 10;
       legend
         .append('text')
           .attr('class', item.id + '-legend-item')
@@ -145,7 +145,7 @@ export default class HomeView extends Component {
           .text(item.name);
 
       let bbox = d3.select('.' + item.id + '-legend-item').node().getBBox();
-      nextX += bbox.width + 5;
+      nextX += bbox.width + 15;
     });
   }
 
@@ -338,44 +338,6 @@ export default class HomeView extends Component {
           const yRef = y;
           const dataRef = this.props.data[k];
           const bisectDate = d3.bisector((d) => { return d.dateHour; }).left;
-          primary
-            .on('contextmenu', function () {
-              d3.event.preventDefault();
-
-              const mouse = d3.mouse(this);
-              const mouseDate = xRef.invert(mouse[0]);
-              const i = bisectDate(dataRef, mouseDate); // not sure the this instance is valid here
-
-              d3.selectAll('#' + k + '-menu').html('');
-              const list = d3.selectAll('#' + k + '-menu').append('ul');
-              list.selectAll('li').data([
-              {
-                title: 'View Model',
-                action: function(elm, d, i) {
-                  /// Show a popup view that takes up the entire screen (not the header or sidebar) the following information
-                  /// * The simulation graph as scatter points and curve fit
-                  /// * Well name
-                  /// * Small map showing well location
-                  /// * DateTime (part of the graph)
-                  /// * ability to close the overlay
-                }
-              }])
-                .enter()
-                .append('li')
-                .html(function(d) {
-                  return d.title;
-                })
-                .on('click', function(d, i) {
-                  // d.action(elm, data, index);
-                  // TODO
-                  d3.select(k + '-menu').style('display', 'none');
-                });
-
-              d3.select('#' + k + '-menu')
-                .style('left', (d3.event.pageX - 216) + 'px') // note this is not responsive, should account for sidebar being visible
-                .style('top', (d3.event.pageY - 52) + 'px') // note this is not responsive, should account for header being visible
-                .style('display', 'block');
-            });
               
           const graph =
             primary.append('g')
@@ -449,6 +411,58 @@ export default class HomeView extends Component {
             .style('stroke', rgbToHex(+inferred.strokeColor.r, +inferred.strokeColor.g, +inferred.strokeColor.b))
             .style('stroke-width', inferred.strokeWidth + 'px')
             .style('stroke-opacity', +inferred.strokeColor.a);
+
+          primary
+            .on('contextmenu', function () { // should be for dots only
+              const mouse = d3.mouse(this);
+              const mouseDate = xRef.invert(mouse[0]);
+              const i = bisectDate(dataRef, mouseDate); // not sure the this instance is valid here
+
+              // verify the y coordinate matches the estimate
+              const d0 = dataRef[i - 1]
+              const d1 = dataRef[i];
+              // work out which date value is closest to the mouse
+              const d = mouseDate - d0.dateHour > d1.dateHour - mouseDate ? d1 : d0;
+
+              const x = xRef(d.dateHour);
+              const y = yRef(yRef.invert(mouse[1]));
+
+              if (!(y >= yRef(d.est) - 5 && y <= yRef(d.est) + 5)) {
+                return;
+              }
+
+              d3.selectAll('#' + k + '-menu').html('');
+              const list = d3.selectAll('#' + k + '-menu').append('ul');
+              list.selectAll('li').data([
+              {
+                title: 'View Model',
+                action: function(elm, d, i) {
+                  /// Show a popup view that takes up the entire screen (not the header or sidebar) the following information
+                  /// * The simulation graph as scatter points and curve fit
+                  /// * Well name
+                  /// * Small map showing well location
+                  /// * DateTime (part of the graph)
+                  /// * ability to close the overlay
+                }
+              }])
+                .enter()
+                .append('li')
+                .html(function(d) {
+                  return d.title;
+                })
+                .on('click', function(d, i) {
+                  // d.action(elm, data, index);
+                  // TODO
+                  d3.select(k + '-menu').style('display', 'none');
+                });
+
+              d3.select('#' + k + '-menu')
+                .style('left', (d3.event.pageX - 216) + 'px') // note this is not responsive, should account for sidebar being visible
+                .style('top', (d3.event.pageY - 52) + 'px') // note this is not responsive, should account for header being visible
+                .style('display', 'block');
+
+              d3.event.preventDefault();
+            });
 
           primary
             .append('g')
@@ -590,7 +604,9 @@ export default class HomeView extends Component {
               </a>
               <div id={`${k}-tooltip`} style={{left: '116px', top: '44px', fontSize: '11px', position: 'absolute', wordWrap: 'break-word'}}></div>
               <div id={`${k}-menu`} className='d3-context-menu' style={{display: 'none'}}></div>
-              <div id={`${k}-chart`} style={{margin: '73px 25px 25px 25px'}}></div>
+              <div id={`${k}-chart`} style={{margin: '73px 25px 25px 25px', textAlign: 'center'}}>
+                <i className="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
+              </div>
             </div>);
         }
       });

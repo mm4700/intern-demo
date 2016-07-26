@@ -9,9 +9,9 @@ export class Sidebar extends Component {
   constructor(props, context) {
     super(props, context);
 
+    const path = this.props.router.location.pathname;
     this.state = {
       activeTab: null,
-      activeView: 'simulations',
       q: true,
       rp: true,
       bhp: true,
@@ -38,7 +38,7 @@ export class Sidebar extends Component {
   toggleDataset(dataset, ev) {
     ev.preventDefault();
 
-    const changeState = Object.assign({}, _.omit(this.state, ['activeTab', 'activeView']));
+    const changeState = Object.assign({}, _.omit(this.state, 'activeTab'));
     changeState[dataset] = !this.state[dataset];
 
     this.props.actions.configureChart({
@@ -86,6 +86,7 @@ export class Sidebar extends Component {
   }
 
   render() {
+    const path = this.props.router.location.pathname;
     return (
       <aside className="side-navigation-wrap sidebar-fixed">
         <div className="slimScrollDiv" style={{position: 'relative', overflow: 'hidden', width: 'auto', height: '100%'}}>
@@ -99,19 +100,19 @@ export class Sidebar extends Component {
                   </a>
                 </small>
               </li>
-              <li className={'view-item ' + (this.state.activeView === 'simulations' ? 'active' : '')}>
+              <li className={'view-item ' + (path.substring(1) === 'simulations' ? 'active' : '')}>
                 <Link to="/simulations" onClick={(ev) => this.changeView('simulations', ev)}>
-                  <i className="fa fa-circle fa-lg"></i> <span className="nav-text"><strong>Simulations</strong></span>
+                  <i className={'fa fa-lg ' + (path.substring(1) === 'simulations' ? 'fa-circle' : 'fa-circle-o')}></i> <span className="nav-text"><strong>Simulations</strong></span>
                 </Link>
               </li>
-              <li className={'view-item ' + (this.state.activeView === 'events' ? 'active' : '')}>
+              <li className={'view-item ' + (path.substring(1) === 'events' ? 'active' : '')}>
                 <Link to="/events" onClick={(ev) => this.changeView('events', ev)}>
-                  <i className="fa fa-circle-o fa-lg"></i> <span className="nav-text"><strong>Event Timeline</strong></span>
+                  <i className={'fa fa-lg ' + (path.substring(1) === 'events' ? 'fa-circle' : 'fa-circle-o')}></i> <span className="nav-text"><strong>Event Timeline</strong></span>
                 </Link>
               </li>
-              <li className={'view-item ' + (this.state.activeView === 'availability' ? 'active' : '')}>
+              <li className={'view-item ' + (path.substring(1) === 'availability' ? 'active' : '')}>
                 <Link to="/availability" onClick={(ev) => this.changeView('availability', ev)}>
-                  <i className="fa fa-circle-o fa-lg"></i> <span className="nav-text"><strong>Sensor Availability</strong></span>
+                  <i className={'fa fa-lg ' + (path.substring(1) === 'availability' ? 'fa-circle' : 'fa-circle-o')}></i> <span className="nav-text"><strong>Sensor Availability</strong></span>
                 </Link>
               </li>
               <li className="side-nav-header">
@@ -169,6 +170,7 @@ export class Sidebar extends Component {
 
 const mapStateToProps = (state) => ({
   chart: state.chart.configuration,
+  router: state.router,
 });
 
 const mapDispatchToProps = (dispatch) => ({

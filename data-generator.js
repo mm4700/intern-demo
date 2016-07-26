@@ -22,13 +22,11 @@ var url = 'mongodb://localhost:27017/demo';
 var chance = new Chance();
 
 var startDate = moment({ years: 2015, months: 0, days: 0, hours: 0, minutes: 0 });
-var endDate = moment({ years: 2015, months: 0, days: 31, hours: 23, minutes: 59 });
+var endDate = moment({ years: 2015, months: 0, days: 14, hours: 23, minutes: 59 });
 
 MongoClient.connect(url, function(err, db) {
   var avv = db.collection('datasets');
   var ec = db.collection('events');
-  //avv.remove({});
-  //ec.remove({});
 
   _.each(_.range(1), function(i) {
     console.log('Well : ' + wells[i]);
@@ -43,8 +41,10 @@ MongoClient.connect(url, function(err, db) {
       'Flow Rate': null
     };
     var nextEvent = null;
-    var eventList = [];
-    var datasetList = [];
+    var eventIndex = 0;
+    var eventList = [[]];
+    var dataIndex = 0;
+    var dataList = [[]];
 
     var eventTypes = [
       { name: 'Well Offline', maxDuration: 14 * 24 * 60 },
@@ -57,10 +57,8 @@ MongoClient.connect(url, function(err, db) {
 
     let index = 1;
     while (currentDate.isBefore(endDate)) {
-      var eventChance = chance.weighted([0, 1, 2, 3, 4, 5, 6], [75000, 1, 34, 12, 12, 42, 20]);
+      var eventChance = chance.weighted([0, 1, 2, 3, 4, 5, 6], [10000, 1, 34, 12, 12, 42, 20]);
       if (eventChance !== 0) {
-        //console.log('event occurred', currentDate.toString(), eventChance, eventTypes[eventChance - 1]);
-
         var e = {};
         e.wellIndex = i;
         e.well = wells[i];
@@ -68,11 +66,13 @@ MongoClient.connect(url, function(err, db) {
         e.event = eventTypes[eventChance - 1].name;
         var ii = chance.integer({ min: 1, max: eventTypes[eventChance - 1].maxDuration });
         e.duration = ii;
-        //console.log('Adding to events');
-        eventList.push(e);
-        if (eventList.length >= 1000) {
-          ec.insertMany(eventList);
-          eventList = [];
+        eventList[eventIndex].push(e);
+        if (eventList[eventIndex].length >= 500) {
+          ec.insertMany(eventList[eventIndex], { w: 1, j: true }, function(err, r) {
+            delete eventList[eventIndex];
+          });
+          eventList[++eventIndex] = [];
+          //console.log('ecbatch write', eventIndex);
         }
 
         nextEvent = moment(currentDate).add(ii, 'minutes');
@@ -196,10 +196,13 @@ MongoClient.connect(url, function(err, db) {
             ], [1000000000, 100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1]);
             other.uncertainity = uf;
             if (fre !== 'Flow Rate') {
-              datasetList.push(other);
-              if (datasetList.length >= 1000) {
-                avv.insertMany(datasetList);
-                datasetList = [];
+              dataList[dataIndex].push(other);
+              if (dataList[dataIndex].length >= 500) {
+                //console.log('avvbatch write', dataIndex, dataList[dataIndex].length);
+                avv.insertMany(dataList[dataIndex], { w: 1, j: true }, function(err, r) {
+                  delete dataList[dataIndex];
+                });
+                dataList[++dataIndex] = [];
               }
             }
           });
@@ -213,10 +216,13 @@ MongoClient.connect(url, function(err, db) {
           delete uncertainity.measurement;
         }
 
-        datasetList.push(uncertainity);
-        if (datasetList.length >= 1000) {
-          avv.insertMany(datasetList);
-          datasetList = [];
+        dataList[dataIndex].push(uncertainity);
+        if (dataList[dataIndex].length >= 500) {
+          //console.log('avvbatch write', dataIndex, dataList[dataIndex].length);
+          avv.insertMany(dataList[dataIndex], { w: 1, j: true }, function(err, r) {
+            delete dataList[dataIndex];
+          });
+          dataList[++dataIndex] = [];
         }
       });
 
@@ -224,13 +230,14 @@ MongoClient.connect(url, function(err, db) {
       //console.log(currentDate.toString(), index++);
     }
 
-    console.log('eventlist', eventList.length);
-    ec.insertMany(eventList);
-    avv.insertMany(datasetList);
+    //console.log('avvbatch write');
+    avv.insertMany(dataList[dataIndex], { w: 1, j: true });
+    console.log('ecbatch write', eventList[eventIndex].length);
+    ec.insertMany(eventList[eventIndex], { w: 1, j: true });
   });
 
-  db.close();
   setTimeout(function() {
+    db.close();
     process.exit(0);
-  }, 30000);
+  }, 60000);
 });
