@@ -144,20 +144,24 @@ export default class EventsView extends Component {
     const dataRef = this.props.events;
     const div = d3.select('.evtooltip');
     let totalTime = 0;
-    //let long
+    let longest = -1;
     dataRef.forEach((data, n) => {
       if (n !== dataRef.length - 1) {
         totalTime += data.duration;
 
         breakdown.children.forEach((t) => {
-          console.log('it', t, data);
-
-          if (t.name === data.event) t.size += data.duration;
-          if (!t.children) {
-            t.children = [];
+          if (data.duration > longest) {
+            longest = data.duration;
           }
 
-          t.children.push({ name: moment(data.dateHour).format('dddd, MMMM Do YYYY, hh:mm'), size: data.duration });
+          if (t.name === data.event) {
+            t.size += data.duration;
+            if (!t.children) {
+              t.children = [];
+            }
+
+            t.children.push({ name: moment(data.dateHour).format('dddd, MMMM Do YYYY, hh:mm'), size: data.duration });
+          }
         });
 
         const xval = x(new Date(data.dateHour));
@@ -182,8 +186,8 @@ export default class EventsView extends Component {
               .duration(200)
               .style('opacity', .9);
             div
-              .html('Event: <strong>' + data.event + '</strong><br/>Occurred:<br/><strong>' + moment(data.dataHour).format('dddd, MMMM Do YYYY, hh:mm') + '</strong><br/>Fixed:<br/><strong>' + moment(data.dataHour).add(data.duration, 'minutes').format('dddd, MMMM Do YYYY, h:mm') + '</strong>')  
-              .style('left', (xval + (w / 2) - 25) + 'px')   
+              .html('Event: <strong>' + data.event + '</strong><br/>Occurred:<br/><strong>' + moment(data.dateHour).format('dddd, MMMM Do YYYY, hh:mm') + '</strong><br/>Completed:<br/><strong>' + moment(data.dataHour).add(data.duration, 'minutes').format('dddd, MMMM Do YYYY, h:mm') + '</strong>')  
+              .style('left', (xval + (w / 2) - 35) + 'px')   
               .style('top', (yval - 78) + 'px');
           })
           .on('mouseout', function(d, i) {
@@ -192,11 +196,11 @@ export default class EventsView extends Component {
               .style('opacity', 0);
           })
           .on('click', () => {
-              // click event shows details below it:
-              //  ** Event Name
-              //  ** Event state and end
-              //  ** Event Ticket
-              //  ** Event assigned to, etc...
+            // click event shows details below it:
+            //  ** Event Name
+            //  ** Event state and end
+            //  ** Event Ticket
+            //  ** Event assigned to, etc...
           });
       }
     });
@@ -235,19 +239,20 @@ export default class EventsView extends Component {
     });
 
     const hr = moment.duration(totalTime, 'minutes');
+    const lhr = moment.duration(longest, 'minutes');
     const hrTotal = 14 * 24 * 60;
     document.getElementById('totalTime').innerHTML = 'Total: ' + hr.get('days') + ':' + pad(hr.get('hours'), 2) + ':' + pad(hr.get('minutes'), 2);
     document.getElementById('totalLostTime').innerHTML = (100 - ((totalTime / hrTotal) * 100).toFixed(0)) + '%';
+    document.getElementById('longestTime').innerHTML = 'Longest: ' + lhr.get('days') + ':' + pad(lhr.get('hours'), 2) + ':' + pad(lhr.get('minutes'), 2);
+    document.getElementById('longestLostTime').innerHTML = (100 - ((longest / hrTotal) * 100).toFixed(0)) + '%';
 
-    this.drawBreakdownChart(breakdown, colors);
+    this.drawBreakdownChart(breakdown, colors, totalTime);
   }
 
-  drawBreakdownChart(breakdown, colors) {
+  drawBreakdownChart(breakdown, colors, totalTime) {
     if (this.props.events === null) {
       return;
     }
-
-    console.log('breakdown', breakdown);
 
     const el = document.getElementById('breakdown-chart');
     while (el.firstChild) {
@@ -255,7 +260,7 @@ export default class EventsView extends Component {
     }
 
     const width = el.clientWidth;
-    const height = 550;
+    const height = 525;
     const radius = Math.min(width, height) / 2;
 
     const x = d3.scale.linear()
@@ -282,7 +287,7 @@ export default class EventsView extends Component {
       .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
 
     let node = breakdown;
-    console.log(node);
+    const tt = d3.select('#sunburst-tooltip');
     const path =
       svg.datum(breakdown)
       .selectAll('path')
@@ -292,6 +297,22 @@ export default class EventsView extends Component {
         .attr('d', arc)
         .style('fill', function(d) { const n = (d.children ? d : d.parent).name; return (n === 'Offline') ? '#ffffff' : colors[n].color; })
         .on('click', click)
+        .on('mouseover', function(d) {
+          tt
+            .transition()
+            .duration(200)
+            .style('opacity', .9);
+          const md = moment.duration(d.size, 'minutes');
+          const dur = md.get('days') + ':' + pad(md.get('hours'), 2) + ':' + pad(md.get('minutes'), 2);
+          const pct = ((d.size / totalTime) * 100).toFixed(0) + '%';
+          tt
+            .html('Event: <strong>' + (d.parent.name !== 'Offline' ? d.parent.name + '::' + d.name : d.name) + '</strong><br/>Duration:<br/><strong>' + dur + ' (' + pct + ')</strong>');
+        })
+        .on('mouseout', function(d) {
+          tt.transition()    
+            .duration(500)    
+            .style('opacity', 0);
+        })
         .each(stash);
 
     function click(d) {
@@ -300,8 +321,6 @@ export default class EventsView extends Component {
         .duration(1000)
         .attrTween('d', arcTweenZoom(d));
     }
-
-    //d3.select(self.frameElement).style("height", height + "px");
 
     function stash(d) {
       d.x0 = d.x;
@@ -340,7 +359,6 @@ export default class EventsView extends Component {
             : function(t) { x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); return arc(d); };
       };
     }
-    
   }
 
   render() {
@@ -370,11 +388,11 @@ export default class EventsView extends Component {
                 <div className="panel panel-default bg-info panel-stat no-icon">
                   <div className="panel-body content-wrap">
                     <div className="value">
-                      <h2 id="totalTime" className="font-header no-m">Longest: </h2>
+                      <h2 id="longestTime" className="font-header no-m">Longest: </h2>
                     </div>
                     <div className="detail text-right">
                       <div className="text-upper">Percent of Total Downtime</div>
-                      <small id="totalLostTime" style={{fontSize: '20px'}} className="text-muted m-d-2">x</small>
+                      <small id="longestLostTime" style={{fontSize: '20px'}} className="text-muted m-d-2">x</small>
                     </div>
                   </div>
                 </div>
@@ -383,6 +401,7 @@ export default class EventsView extends Component {
           </div>
           <div className="col-xs-4 col-xs-offset-1">
             <div id="breakdown-chart"></div>
+            <div id="sunburst-tooltip" className="dttooltip" style={{textAlign: 'center', opacity: 0}}>Hello World</div>
           </div>
         </div>
       </div>

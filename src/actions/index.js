@@ -5,6 +5,8 @@ import {
   CONFIGURE_CHART,
   RECEIVE_EVENTS,
   FETCH_EVENTS_REQUEST,
+  RECEIVE_MEASUREMENTS,
+  FETCH_MEASUREMENTS_REQUEST
 } from '../constants';
 import { pushState } from 'redux-router';
 import Promise from 'bluebird';
@@ -114,6 +116,7 @@ export function fetchMeasurements(opts) {
   return (dispatch, state) => {
     dispatch(fetchDataRequest());
     const data = { startDate: opts.startDate, endDate: opts.endDate, well: opts.well, sensor: opts.sensor };
+    console.log('data', data);
     return new Promise((resolve, reject) => {
       agent.post('http://localhost:5001/api/v1/measurements')
         .send(data)

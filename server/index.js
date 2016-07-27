@@ -128,16 +128,26 @@ app.post('/api/v1/events', function(req, res) {
 });
 
 app.post('/api/v1/measurements', function(req, res) {
-  db.events.find({
+  var query = {
     well: req.body.well,
     type: 'measurement',
-    sensor: datasetMap[req.params.sensor],
     dateHour : {
       '$gte' : new Date(req.body.startDate),
       '$lte' : new Date(req.body.endDate)
     }
-  }).toArray(function(err, results) {
-    res.status(200).send(results);
+  };
+
+  if (req.body.sensor) {
+    query.sensor = datasetMap[req.body.sensor];
+  }
+
+  db.datasets.find(query).toArray(function(err, results) {
+    var set = {};
+    _.each(results, function(n) {
+      if (!set[n.sensor]) set[n.sensor] = [];
+      set[n.sensor].push(n.dateHour)
+    });
+    res.status(200).send(set);
   });
 });
 

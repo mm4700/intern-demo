@@ -359,6 +359,13 @@ export class Header extends Component {
               </div>
             </li>
           </ul>
+          <ul className="nav navbar-nav navbar-right">
+            <li className="hidden-xs">
+              <Link to="about" class="font-lg">
+                <i className="fa fa-lg fa-question-circle-o m-d-1"></i>
+              </Link>
+            </li>
+          </ul>
         </div>
         <div onClick={this.toggleFilters} className="pull-down" style={{cursor: 'pointer', color: '#464c52', borderRadius: '0 0 4px 4px', background: 'white', position: 'fixed', top: this.state.filters ? '294px' : '50px', boxShadow: this.state.filters ? '1px 1px 5px #ccc' : 'none', left: (minified.charAt(0) === '-') ? ((document.body.clientWidth / 2) - 50) + 'px' : ((((document.body.clientWidth - 230) / 2) - 50) + 230) + 'px', width: '100px', textAlign: 'center', borderBottom: '1px solid rgba(0,0,0,0.5)', borderLeft: '1px solid rgba(0,0,0,.5)', borderRight: '1px solid rgba(0,0,0,0.5)'}}>
           <i className={'fa pull-right ' + (this.state.filters ? 'fa-caret-up' : 'fa-caret-down')} style={{marginRight: '5px', marginTop: '3px'}}></i> <i className={'fa pull-left ' + (this.state.filters ? 'fa-caret-up' : 'fa-caret-down')} style={{marginLeft: '5px', marginTop: '3px'}}></i> Filters

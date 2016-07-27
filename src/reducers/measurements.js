@@ -6,7 +6,7 @@ import {
 } from '../constants';
 
 const initialState = {
-  data: {},
+  data: null,
   isFetching: false
 };
 
