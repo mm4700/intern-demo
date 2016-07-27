@@ -116,7 +116,6 @@ export function fetchMeasurements(opts) {
   return (dispatch, state) => {
     dispatch(fetchDataRequest());
     const data = { startDate: opts.startDate, endDate: opts.endDate, well: opts.well, sensor: opts.sensor };
-    console.log('data', data);
     return new Promise((resolve, reject) => {
       agent.post('http://localhost:5001/api/v1/measurements')
         .send(data)

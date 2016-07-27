@@ -201,6 +201,7 @@ export default class EventsView extends Component {
             //  ** Event state and end
             //  ** Event Ticket
             //  ** Event assigned to, etc...
+            alert('Show Event Information: Name, State, Date, Ticket Link, Person Assigned');
           });
       }
     });

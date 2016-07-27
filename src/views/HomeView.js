@@ -6,6 +6,7 @@ import * as actionCreators from '../actions';
 import d3 from 'd3';
 import moment from 'moment';
 import Promise from 'bluebird';
+import agent from 'superagent';
 
 function componentToHex(c) {
   const hex = c.toString(16);
@@ -398,7 +399,7 @@ export default class HomeView extends Component {
             .style('stroke-width', inferred.strokeWidth + 'px')
             .style('stroke-opacity', +inferred.strokeColor.a);
 
-          if (this.props.chart.settings.enableDataPointInteraction) {
+          if (this.props.chart.settings.enableDataPointInteraction && k !== 'q') {
             const filtersRefInner = this.props.chart.filters;
             primary
               .on('contextmenu', function () { // should be for dots only
@@ -419,7 +420,9 @@ export default class HomeView extends Component {
                   return;
                 }
 
-                d3.selectAll('#' + k + '-menu').html('');
+                const dateHourRef = d.dateHour;
+                const maxum = d.est;
+                d3.select('#' + k + '-menu').html('');
                 const list = d3.selectAll('#' + k + '-menu').append('ul');
                 list.selectAll('li').data([{
                     title: 'View Model'
@@ -427,7 +430,7 @@ export default class HomeView extends Component {
                   .enter()
                   .append('li')
                   .html(function(d) {
-                    return '<a href="#modelModal" style="color: inherit;">' + d.title + '</a>';
+                    return '<a href="#modelModal" style="color: inherit;text-decoration: none;">' + d.title + '</a>';
                   })
                   .on('click', function(d, i) {
                     document.getElementById('uncertanityModelDetails').innerHTML = 
@@ -438,30 +441,198 @@ export default class HomeView extends Component {
                     // now fetch the data and draw the chart
                     let startDate;
                     let endDate;
+                    let midpoints;
                     if (filtersRefInner.grouping === 'hourly') {
-                      startDate = moment(d.dateHour).startOf('hour');
-                      endDate = moment(d.dateHour).endOf('hour');
+                      startDate = moment(dateHourRef).startOf('hour');
+                      endDate = moment(dateHourRef).endOf('hour');
+                      midpoints = 60 / 2;
                     }
                     else if (filtersRefInner.grouping === 'daily') {
-                      startDate = moment(d.dateHour).startOf('day');
-                      endDate = moment(d.dateHour).endOf('day');
+                      startDate = moment(dateHourRef).startOf('day');
+                      endDate = moment(dateHourRef).endOf('day');
+                      midpoints = (24 * 60) / 2;
                     }
                     else if (filtersRefInner.grouping === 'weekly') {
-                      startDate = moment(d.dateHour).startOf('week');
-                      endDate = moment(d.dateHour).endOf('week');
+                      startDate = moment(dateHourRef).startOf('week');
+                      endDate = moment(dateHourRef).endOf('week');
+                      midpoints = (7 * 24 * 60) / 2;
                     }
                     else if (filtersRefInner.grouping === 'monthly') {
-                      startDate = moment(d.dateHour).startOf('month');
-                      endDate = moment(d.dateHour).endOf('month');
+                      startDate = moment(dateHourRef).startOf('month');
+                      endDate = moment(dateHourRef).endOf('month');
+                      midpoints = (30 * 7 * 24 * 60) / 2;
                     }
+
+                    agent.post('http://localhost:5001/api/v1/model')
+                      .send({ well: filtersRefInner.well, sensor: k, startDate: startDate.valueOf(), endDate: endDate.valueOf() })
+                      .set('Accept', 'application/json')
+                      .end((err, response) => {
+                        if (err) {
+                          return reject(err);
+                        }
+
+                        console.log('got measurements', response.body);
+                        // draw our chart
+                        const cel = document.getElementById('model-chart');
+                        while (cel.firstChild) {
+                          cel.removeChild(cel.firstChild);
+                        }
+
+                        const marginModel = {top: 20, right: 20, bottom: 30, left: 65};
+                        const widthModel = 500 - marginModel.left - marginModel.right;
+                        const heightModel = 450 - marginModel.top - marginModel.bottom;
+
+                        const minDateModel = new Date(startDate.valueOf());
+                        const maxDateModel = new Date(endDate.valueOf());
+                        const xModel = d3.time.scale()
+                          .domain([
+                            minDateModel,
+                            maxDateModel
+                          ])
+                          .range([0, widthModel]);
+
+                        const yModel = d3.scale.linear()
+                          .range([heightModel, 0]);
+
+                        const xAxisModel = d3.svg.axis()
+                          .scale(xModel)
+                          .orient('bottom');
+
+                        const yAxisModel = d3.svg.axis()
+                          .scale(yModel)
+                          .orient('left');
+
+                        const curveModel = d3.svg.line()
+                          .interpolate('cardinal')
+                          .x(d => {
+                            return xModel(new Date(d.dateHour));
+                          })
+                          .y(d => {
+                            return yModel(d.value);
+                          });
+
+                        const svgModel = d3.select('#model-chart').append('svg')
+                            .attr('width', widthModel + marginModel.left + marginModel.right)
+                            .attr('height', heightModel + marginModel.top + marginModel.bottom)
+                          .append('g')
+                            .attr('transform', 'translate(' + marginModel.left + ',' + marginModel.top + ')');
+
+                        const dataset = response.body;
+
+                        const clipModel = svgModel
+                          .append('svg:clipPath')
+                            .attr('id', 'clipModel')
+                            .append('svg:rect')
+                              .attr('id', 'clip-rect')
+                              .attr('x', '0')
+                              .attr('y', '0')
+                              .attr('width', widthModel)
+                              .attr('height', heightModel);
+
+                        const brush = d3.svg.brush()
+                          .x(xModel)
+                          .y(yModel)
+                          .on('brushend', brushended);
+
+                        xModel.domain(d3.extent(dataset, function(d) { return new Date(d.dateHour); })).nice();
+                        yModel.domain(d3.extent(dataset, function(d) { return d.measurement; })).nice();
+
+                        const graphModel =
+                          svgModel.append('g')
+                            .attr('clip-path', 'url(#clipModel)');
+                        
+                        svgModel.append('g')
+                          .attr('class', 'axis--x')
+                          .attr('transform', 'translate(0,' + heightModel + ')')
+                          .call(xAxisModel);
+
+                        svgModel.append('g')
+                          .attr('class', 'axis--y')
+                          .call(yAxisModel);
+
+                        graphModel.selectAll('.model-measure')
+                          .data(dataset)
+                        .enter().append('circle')
+                          .attr('class', 'model-measure')
+                          .attr('r', 3.5)
+                          .attr('cx', function(d) { return xModel(new Date(d.dateHour)); })
+                          .attr('cy', function(d) { return yModel(d.measurement); })
+                          .attr('fill', '#1f77b4')
+                          .attr('fill-opacity', uncertainity / 100)
+                          .attr('stroke', '#000')
+                          .attr('stroke-opacity', 0.2);
+
+                        const randomMidpoint = Math.floor(Math.random() * (midpoints + (midpoints / 2))) + (midpoints - (midpoints / 2));
+                        graphModel.append('path')
+                          .datum([
+                              { dateHour: xModel.domain()[0], value: yModel.domain()[0] },
+                              { dateHour: moment(dateHourRef).add(randomMidpoint, 'minutes').valueOf(), value: maxum },
+                              { dateHour: xModel.domain()[1], value: yModel.domain()[0] }
+                            ])
+                          .attr('class', 'model-curve')
+                          .attr('d', curveModel)
+                          .style('fill', 'none')
+                          .style('stroke', '#000000')
+                          .style('stroke-width', 2.5)
+                          .style('stroke-dasharray', '5 5')
+                          .style('stroke-opacity', 0.8);
+
+                        graphModel.selectAll('.maxum')
+                          .data([
+                              { dateHour: moment(dateHourRef).add(randomMidpoint, 'minutes').valueOf(), value: maxum }
+                            ])
+                        .enter().append('circle')
+                          .attr('class', 'maxum')
+                          .attr('r', 9.5)
+                          .attr('cx', function(d) { return xModel(new Date(d.dateHour)); })
+                          .attr('cy', function(d) { return yModel(d.value); })
+                          .attr('fill', '#edf8b1')
+                          .attr('fill-opacity', 0.3)
+                          .attr('stroke', '#000')
+                          .attr('stroke-opacity', 0.2);
+
+                        graphModel.append('g')
+                          .attr('class', 'brush')
+                          .call(brush);
+
+                        function brushended() {
+                          if (brush.empty()) {
+                            xModel.domain(d3.extent(dataset, function(d) { return new Date(d.dateHour); })).nice();
+                            yModel.domain(d3.extent(dataset, function(d) { return d.measurement; })).nice();
+                          }
+                          else {
+                            const ext = brush.extent();
+                            xModel.domain([ext[0][0], ext[1][0]]);
+                            yModel.domain([ext[0][1], ext[1][1]]);
+                            graphModel.select('.brush').call(brush.clear());
+                          }
+                          zoom();
+                        }
+
+                        function zoom() {
+                          d3.select('.axis--x').call(xAxisModel);
+                          d3.select('.axis--y').call(yAxisModel);
+                          d3.selectAll('.model-measure')
+                            .attr('cx', function(d) { return xModel(new Date(d.dateHour)); })
+                            .attr('cy', function(d) { return yModel(d.measurement); });
+                          d3.select('.model-curve')
+                            .attr('d', curveModel);
+                          d3.selectAll('.maxum')
+                            .attr('cx', function(d) { return xModel(new Date(d.dateHour)); })
+                            .attr('cy', function(d) { return yModel(d.value); });
+                        }
+                      });
 
                     d3.select('#' + k + '-menu').style('display', 'none');
                   });
 
-                d3.select('#' + k + '-menu')
-                  .style('left', (d3.event.pageX - 216) + 'px') // note this is not responsive, should account for sidebar being visible
-                  .style('top', (d3.event.pageY - 52) + 'px') // note this is not responsive, should account for header being visible
+                const m = d3.select('#' + k + '-menu');
+                m
+                  .style('left', (x + 120) + 'px') // note this is not responsive, should account for sidebar being visible
+                  .style('top', (y + 100) + 'px') // note this is not responsive, should account for header being visible
                   .style('display', 'block');
+
+                d3.select('body').on('click', () => { m.style('display', 'none'); d3.select('body').on('click', null); });
 
                 d3.event.preventDefault();
               });

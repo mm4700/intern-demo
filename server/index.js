@@ -127,7 +127,23 @@ app.post('/api/v1/events', function(req, res) {
   });
 });
 
-app.post('/api/v1/measurements', function(req, res) {
+app.post('/api/v1/model', function(req, res) {
+  var query = {
+    well: req.body.well,
+    type: 'measurement',
+    sensor: datasetMap[req.body.sensor],
+    dateHour : {
+      '$gte' : new Date(req.body.startDate),
+      '$lte' : new Date(req.body.endDate)
+    }
+  };
+
+  db.datasets.find(query).toArray(function(err, results) {
+    res.status(200).send(results);
+  });
+});
+
+app.post('/api/v1/arrival-rates', function(req, res) {
   var query = {
     well: req.body.well,
     type: 'measurement',
@@ -137,9 +153,69 @@ app.post('/api/v1/measurements', function(req, res) {
     }
   };
 
-  if (req.body.sensor) {
-    query.sensor = datasetMap[req.body.sensor];
-  }
+  db.datasets.find(query)
+    .toArray(function(err, results) {
+      var set = [];
+      var links = {};
+      var sublinks = {};
+      var minDate = Number.POSITIVE_INFINITY;
+      var maxDate = 0;
+      _.each(results, function(n, index) {
+        if (!links[n.sensor]) {
+          set.push({
+            name: n.sensor,
+            total: 0,
+            measurements: []
+          });
+
+          links[n.sensor] = set[set.length - 1];
+          sublinks[n.sensor] = {};
+        }
+
+        links[n.sensor].total++;
+
+        var dh = new Date(n.dateHour).getTime();
+        if (dh < minDate) {
+          minDate = dh;
+        }
+        if (dh > maxDate) {
+          maxDate = dh;
+        }
+
+        var i;
+        if (req.body.grouping === 'hourly') {
+          i = moment(n.dateHour).dayOfYear() + ' ' + moment(n.dateHour).hour();
+        }
+        else if (req.body.grouping === 'daily') {
+          i = moment(n.dateHour).dayOfYear();
+        }
+        else if (req.body.grouping === 'weekly') {
+          i = moment(n.dateHour).week();
+        }
+        else {
+          i = moment(n.dateHour).month();
+        }
+
+        var subset = sublinks[n.sensor][i];
+        if (!subset) {
+          links[n.sensor].measurements.push([n.dateHour, 1]);
+          sublinks[n.sensor][i] = links[n.sensor].measurements[links[n.sensor].measurements.length - 1];
+        }
+        else {subset[1]++}
+      });
+      res.status(200).send({ minDate: minDate, maxDate: maxDate, data: set});
+    });
+});
+
+app.post('/api/v1/measurements', function(req, res) {
+  var query = {
+    well: req.body.well,
+    type: 'measurement',
+    dateHour : {
+      '$gte' : new Date(req.body.startDate),
+      '$lte' : new Date(req.body.endDate)
+    }
+  };
 
   db.datasets.find(query).toArray(function(err, results) {
     var set = {};
