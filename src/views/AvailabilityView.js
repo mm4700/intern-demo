@@ -429,7 +429,7 @@ export class AvailabilityView extends Component {
   }
 
   drawEventsTab() {
-    agent.post('http://ec2-54-187-245-21.us-west-2.compute.amazonaws.com:5001/api/v1/arrival-rates')
+    agent.post('http://ec2-54-187-232-182.us-west-2.compute.amazonaws.com:5001/api/v1/arrival-rates')
       .send(this.props.chart.filters)
       .set('Accept', 'application/json')
       .end((err, response) => {
@@ -553,7 +553,7 @@ export class AvailabilityView extends Component {
   }
 
   drawAvailTab() {
-    agent.post('http://ec2-54-187-245-21.us-west-2.compute.amazonaws.com:5001/api/v1/sensor-availability')
+    agent.post('http://ec2-54-187-232-182.us-west-2.compute.amazonaws.com:5001/api/v1/sensor-availability')
       .send(this.props.chart.filters)
       .set('Accept', 'application/json')
       .end((err, response) => {
