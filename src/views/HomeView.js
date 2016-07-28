@@ -104,7 +104,7 @@ export default class HomeView extends Component {
   drawLegend(k, primary) {
     let yOffset = 385;
     if (this.props.chart.settings.enableZoomControl) {
-      yOffset += 50;
+      yOffset += 70;
     }
 
     let legend =
