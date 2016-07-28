@@ -34,7 +34,8 @@ export default class EventsView extends Component {
 
   componentWillReceiveProps(nextProps) {
     if (this.state.previous) {
-      if (nextProps.chart.filters.startDate !== this.state.previous.startDate
+      if (nextProps.chart.filters.well !== this.state.previous.well
+        || nextProps.chart.filters.startDate !== this.state.previous.startDate
         || nextProps.chart.filters.endDate !== this.state.previous.endDate) {
         this.setState({
           dataRefreshRequired: true
