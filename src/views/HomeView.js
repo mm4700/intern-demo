@@ -558,7 +558,7 @@ export default class HomeView extends Component {
                           .attr('cx', function(d) { return xModel(new Date(d.dateHour)); })
                           .attr('cy', function(d) { return yModel(d.measurement); })
                           .attr('fill', '#1f77b4')
-                          .attr('fill-opacity', uncertainity / 100)
+                          .attr('fill-opacity', function(d) { return d.uncertainity / 100; })
                           .attr('stroke', '#000')
                           .attr('stroke-opacity', 0.2);
 

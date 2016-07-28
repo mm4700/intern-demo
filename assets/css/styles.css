@@ -313,3 +313,14 @@ div.tooltip {
     -moz-osx-font-smoothing: grayscale;
     fill: #777;
 }
+
+.avail-tab.active a {
+  color: #7f888f;
+  border-color: #607786;
+}
+
+.avail-tab a {
+  color: #f6f9fa;
+  background-color: #95a4b8;
+  border-color: #607786;
+}

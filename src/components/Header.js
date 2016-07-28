@@ -361,7 +361,7 @@ export class Header extends Component {
           </ul>
           <ul className="nav navbar-nav navbar-right">
             <li className="hidden-xs">
-              <Link to="about" class="font-lg">
+              <Link to="about">
                 <i className="fa fa-lg fa-question-circle-o m-d-1"></i>
               </Link>
             </li>

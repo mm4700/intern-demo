@@ -198,7 +198,7 @@ app.post('/api/v1/arrival-rates', function(req, res) {
 
         var subset = sublinks[n.sensor][i];
         if (!subset) {
-          links[n.sensor].measurements.push([n.dateHour, 1]);
+          links[n.sensor].measurements.push([moment(n.dateHour).startOf('day').valueOf(), 1]);
           sublinks[n.sensor][i] = links[n.sensor].measurements[links[n.sensor].measurements.length - 1];
         }
         else {subset[1]++}
@@ -207,7 +207,7 @@ app.post('/api/v1/arrival-rates', function(req, res) {
     });
 });
 
-app.post('/api/v1/measurements', function(req, res) {
+app.post('/api/v1/sensor-availability', function(req, res) {
   var query = {
     well: req.body.well,
     type: 'measurement',
@@ -217,14 +217,39 @@ app.post('/api/v1/measurements', function(req, res) {
     }
   };
 
-  db.datasets.find(query).toArray(function(err, results) {
-    var set = {};
-    _.each(results, function(n) {
-      if (!set[n.sensor]) set[n.sensor] = [];
-      set[n.sensor].push(n.dateHour)
+  db.datasets.find(query)
+    .toArray(function(err, results) {
+      var set = [];
+      var links = {};
+      var minDate = Number.POSITIVE_INFINITY;
+      var maxDate = 0;
+      
+      _.each(Object.keys(datasetMap), function(k) {
+        if (k !== 'q') {
+          set.push({
+            measure: datasetMap[k],
+            interval: 60,
+            data: []
+          });
+
+          links[datasetMap[k]] = {};
+
+          var startDate = moment({ years: 2015, months: 0, days: 0, hours: 0, minutes: 0 });
+          var endDate = moment({ years: 2015, months: 0, days: 14, hours: 23, minutes: 59 });
+          while(startDate.isBefore(endDate)) {
+            set[set.length - 1].data.push([startDate.valueOf(), 0]);
+            links[datasetMap[k]][startDate.valueOf()] = set[set.length - 1].data[set[set.length - 1].data.length - 1];
+            startDate.add(1, 'minutes');
+          }
+        }
+      });
+
+      _.each(results, function(n, index) {
+        links[n.sensor][moment(n.dateHour).valueOf()][1] = 1;
+      });
+
+      res.status(200).send({ minDate: minDate, maxDate: maxDate, data: set});
     });
-    res.status(200).send(set);
-  });
 });
 
 app.get('/', function(req, res) {
