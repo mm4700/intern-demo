@@ -79,7 +79,7 @@ export function fetchEventsRequest() {
 export function fetchEvents(opts) {
   return (dispatch, state) => {
     dispatch(fetchDataRequest());
-    const data = { startDate: moment(opts.filters.startDate, 'MM/DD/YYYY HH:mm').valueOf(), endDate: moment(opts.filters.endDate, 'MM/DD/YYYY HH:mm').valueOf(), grouping: opts.filters.grouping };
+    const data = { well: opts.filters.well, startDate: moment(opts.filters.startDate, 'MM/DD/YYYY HH:mm').valueOf(), endDate: moment(opts.filters.endDate, 'MM/DD/YYYY HH:mm').valueOf(), grouping: opts.filters.grouping };
     return new Promise((resolve, reject) => {
       agent.post('http://ec2-54-191-118-209.us-west-2.compute.amazonaws.com:5001/api/v1/events')
         .send(data)

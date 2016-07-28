@@ -118,6 +118,7 @@ app.post('/api/v1/events', function(req, res) {
   var startDate = moment({ years: 2015, months: 0, days: 0, hours: 0, minutes: 0 });
 
   db.events.find({
+    well: req.body.well,
     dateHour : {
       '$gte' : new Date(req.body.startDate),
       '$lte' : new Date(req.body.endDate)
