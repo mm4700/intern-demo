@@ -35,7 +35,7 @@ export function fetchData(dataset, opts) {
     dispatch(fetchDataRequest());
     const data = { well: opts.filters.well, startDate: moment(opts.filters.startDate, 'MM/DD/YYYY HH:mm').valueOf(), endDate: moment(opts.filters.endDate, 'MM/DD/YYYY HH:mm').valueOf(), grouping: opts.filters.grouping, aggregate: opts.filters.aggregate };
     return new Promise((resolve, reject) => {
-      agent.post('http://localhost:5001/api/v1/data/' + dataset)
+      agent.post('http://ec2-54-187-245-21.us-west-2.compute.amazonaws.com:5001/api/v1/data/' + dataset)
         .send(data)
         .set('Accept', 'application/json')
         .end((err, response) => {
@@ -81,7 +81,7 @@ export function fetchEvents(opts) {
     dispatch(fetchDataRequest());
     const data = { startDate: moment(opts.filters.startDate, 'MM/DD/YYYY HH:mm').valueOf(), endDate: moment(opts.filters.endDate, 'MM/DD/YYYY HH:mm').valueOf(), grouping: opts.filters.grouping };
     return new Promise((resolve, reject) => {
-      agent.post('http://localhost:5001/api/v1/events')
+      agent.post('http://ec2-54-187-245-21.us-west-2.compute.amazonaws.com:5001/api/v1/events')
         .send(data)
         .set('Accept', 'application/json')
         .end((err, response) => {
@@ -117,7 +117,7 @@ export function fetchMeasurements(opts) {
     dispatch(fetchDataRequest());
     const data = { startDate: opts.startDate, endDate: opts.endDate, well: opts.well, sensor: opts.sensor };
     return new Promise((resolve, reject) => {
-      agent.post('http://localhost:5001/api/v1/measurements')
+      agent.post('http://ec2-54-187-245-21.us-west-2.compute.amazonaws.com:5001/api/v1/measurements')
         .send(data)
         .set('Accept', 'application/json')
         .end((err, response) => {
