@@ -471,7 +471,6 @@ export default class HomeView extends Component {
                           return reject(err);
                         }
 
-                        console.log('got measurements', response.body);
                         // draw our chart
                         const cel = document.getElementById('model-chart');
                         while (cel.firstChild) {
@@ -562,12 +561,12 @@ export default class HomeView extends Component {
                           .attr('stroke', '#000')
                           .attr('stroke-opacity', 0.2);
 
-                        const randomMidpoint = Math.floor(Math.random() * (midpoints + (midpoints / 2))) + (midpoints - (midpoints / 2));
+                        const randomMidpoint = Math.floor(Math.random() * (midpoints - (midpoints / 2))) + (midpoints - (midpoints / 2));
                         graphModel.append('path')
                           .datum([
-                              { dateHour: xModel.domain()[0], value: yModel.domain()[0] },
-                              { dateHour: moment(dateHourRef).add(randomMidpoint, 'minutes').valueOf(), value: maxum },
-                              { dateHour: xModel.domain()[1], value: yModel.domain()[0] }
+                              { dateHour: xModel.domain()[0].getTime(), value: yModel.domain()[0] },
+                              { dateHour: dateHourRef, value: maxum },
+                              { dateHour: xModel.domain()[1].getTime(), value: yModel.domain()[0] }
                             ])
                           .attr('class', 'model-curve')
                           .attr('d', curveModel)
@@ -579,7 +578,7 @@ export default class HomeView extends Component {
 
                         graphModel.selectAll('.maxum')
                           .data([
-                              { dateHour: moment(dateHourRef).add(randomMidpoint, 'minutes').valueOf(), value: maxum }
+                              { dateHour: dateHourRef, value: maxum }
                             ])
                         .enter().append('circle')
                           .attr('class', 'maxum')

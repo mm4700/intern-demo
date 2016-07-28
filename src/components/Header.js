@@ -80,11 +80,14 @@ export class Header extends Component {
   }
 
   handleWellSelection(well) {
+    console.log('well', well);
+
     const change = _.omit(this.state, 'filters');
     change.well = well;
     this.props.actions.configureChart({
       filters: change
     });
+    console.log('well', change);
 
     this.setState({
       well: well
@@ -159,8 +162,8 @@ export class Header extends Component {
                               <div className="col-xs-12" style={{padding: 0}}>
                                 <div className="radio" style={{margin: '2px 0'}}>
                                   <div className="custom-radio font-12 no-animation">
-                                    <input type="radio" name="well" id="Standard Draw 9-20-18-93" checked={this.state.well === 'Standard Draw 9-20-18-93'} onChange={() => this.handleWellSelection('Standard Draw 9-20-18-93')} />
-                                    <label htmlFor="well1">Standard Draw 9-20-18-93</label>
+                                    <input type="radio" name="well" id="Standard Draw 9-20-18-93" value="Standard Draw 9-20-18-93" checked={this.state.well === 'Standard Draw 9-20-18-93'} onChange={() => this.handleWellSelection('Standard Draw 9-20-18-93')} />
+                                    <label htmlFor="Standard Draw 9-20-18-93">Standard Draw 9-20-18-93</label>
                                   </div>
                                 </div>
                               </div>
@@ -171,8 +174,8 @@ export class Header extends Component {
                               <div className="col-xs-12" style={{padding: 0}}>
                                 <div className="radio" style={{margin: '2px 0'}}>
                                   <div className="custom-radio font-12 no-animation">
-                                    <input type="radio" name="well" id="CG Road 14-2-19-94" checked={this.state.well === 'CG Road 14-2-19-94'} onChange={() => this.handleWellSelection('CG Road 14-2-19-94')} />
-                                    <label htmlFor="well2">CG Road 14-2-19-94</label>
+                                    <input type="radio" name="well" id="CG Road 14-2-19-94" value="CG Road 14-2-19-94" checked={this.state.well === 'CG Road 14-2-19-94'} onChange={() => this.handleWellSelection('CG Road 14-2-19-94')} />
+                                    <label htmlFor="CG Road 14-2-19-94">CG Road 14-2-19-94</label>
                                   </div>
                                 </div>
                               </div>
@@ -183,8 +186,8 @@ export class Header extends Component {
                               <div className="col-xs-12" style={{padding: 0}}>
                                 <div className="radio" style={{margin: '2px 0'}}>
                                   <div className="custom-radio font-12 no-animation">
-                                    <input type="radio" name="well" id="Wild Rose 16-30-17-94" checked={this.state.well === 'Wild Rose 16-30-17-94'} onChange={() => this.handleWellSelection('Wild Rose 16-30-17-94')} />
-                                    <label htmlFor="well3">Wild Rose 16-30-17-94</label>
+                                    <input type="radio" name="well" id="Wild Rose 16-30-17-94" value="Wild Rose 16-30-17-94" checked={this.state.well === 'Wild Rose 16-30-17-94'} onChange={() => this.handleWellSelection('Wild Rose 16-30-17-94')} />
+                                    <label htmlFor="Wild Rose 16-30-17-94">Wild Rose 16-30-17-94</label>
                                   </div>
                                 </div>
                               </div>
@@ -195,8 +198,8 @@ export class Header extends Component {
                               <div className="col-xs-12" style={{padding: 0}}>
                                 <div className="radio" style={{margin: '2px 0'}}>
                                   <div className="custom-radio font-12 no-animation">
-                                    <input type="radio" name="well" id="Creston Nose 1-9-18-92" checked={this.state.well === 'Creston Nose 1-9-18-92'} onChange={() => this.handleWellSelection('Creston Nose 1-9-18-92')} />
-                                    <label htmlFor="well4">Creston Nose 1-9-18-92</label>
+                                    <input type="radio" name="well" id="Creston Nose 1-9-18-92" value="Creston Nose 1-9-18-92" checked={this.state.well === 'Creston Nose 1-9-18-92'} onChange={() => this.handleWellSelection('Creston Nose 1-9-18-92')} />
+                                    <label htmlFor="Creston Nose 1-9-18-92">Creston Nose 1-9-18-92</label>
                                   </div>
                                 </div>
                               </div>
@@ -207,8 +210,8 @@ export class Header extends Component {
                               <div className="col-xs-12" style={{padding: 0}}>
                                 <div className="radio" style={{margin: '2px 0'}}>
                                   <div className="custom-radio font-12 no-animation">
-                                    <input type="radio" name="well" id="CG Road 14-1-19-94" checked={this.state.well === 'CG Road 14-1-19-94'} onChange={() => this.handleWellSelection('CG Road 14-1-19-94')} />
-                                    <label htmlFor="well5">CG Road 14-1-19-94</label>
+                                    <input type="radio" name="well" id="CG Road 14-1-19-94" value="CG Road 14-1-19-94" checked={this.state.well === 'CG Road 14-1-19-94'} onChange={() => this.handleWellSelection('CG Road 14-1-19-94')} />
+                                    <label htmlFor="CG Road 14-1-19-94">CG Road 14-1-19-94</label>
                                   </div>
                                 </div>
                               </div>
@@ -223,8 +226,8 @@ export class Header extends Component {
                               <div className="col-xs-12" style={{padding: 0}}>
                                 <div className="radio" style={{margin: '2px 0'}}>
                                   <div className="custom-radio font-12 no-animation">
-                                    <input type="radio" name="well" id="Coal Gulch 7A-34-17-93" checked={this.state.well === 'Coal Gulch 7A-34-17-93'} onChange={() => this.handleWellSelection('Coal Gulch 7A-34-17-93')} />
-                                    <label htmlFor="well6">Coal Gulch 7A-34-17-93</label>
+                                    <input type="radio" name="well" id="Coal Gulch 7A-34-17-93" value="Coal Gulch 7A-34-17-93" checked={this.state.well === 'Coal Gulch 7A-34-17-93'} onChange={() => this.handleWellSelection('Coal Gulch 7A-34-17-93')} />
+                                    <label htmlFor="Coal Gulch 7A-34-17-93">Coal Gulch 7A-34-17-93</label>
                                   </div>
                                 </div>
                               </div>
@@ -235,8 +238,8 @@ export class Header extends Component {
                               <div className="col-xs-12" style={{padding: 0}}>
                                 <div className="radio" style={{margin: '2px 0'}}>
                                   <div className="custom-radio font-12 no-animation">
-                                    <input type="radio" name="well" id="Coal Gulch 9-28-17-93" checked={this.state.well === 'Coal Gulch 9-28-17-93'} onChange={() => this.handleWellSelection('Coal Gulch 9-28-17-93')} />
-                                    <label htmlFor="well7">Coal Gulch 9-28-17-93</label>
+                                    <input type="radio" name="well" id="Coal Gulch 9-28-17-93" value="Coal Gulch 9-28-17-93" checked={this.state.well === 'Coal Gulch 9-28-17-93'} onChange={() => this.handleWellSelection('Coal Gulch 9-28-17-93')} />
+                                    <label htmlFor="Coal Gulch 9-28-17-93">Coal Gulch 9-28-17-93</label>
                                   </div>
                                 </div>
                               </div>
@@ -247,8 +250,8 @@ export class Header extends Component {
                               <div className="col-xs-12" style={{padding: 0}}>
                                 <div className="radio" style={{margin: '2px 0'}}>
                                   <div className="custom-radio font-12 no-animation">
-                                    <input type="radio" name="well" id="Flat Top Fed Gulch 13-23-14-93" checked={this.state.well === 'Flat Top Fed Gulch 13-23-14-93'} onChange={() => this.handleWellSelection('Flat Top Fed Gulch 13-23-14-93')} />
-                                    <label htmlFor="well8">Flat Top Fed Gulch 13-23-14-93</label>
+                                    <input type="radio" name="well" id="Flat Top Fed Gulch 13-23-14-93" value="Flat Top Fed Gulch 13-23-14-93" checked={this.state.well === 'Flat Top Fed Gulch 13-23-14-93'} onChange={() => this.handleWellSelection('Flat Top Fed Gulch 13-23-14-93')} />
+                                    <label htmlFor="Flat Top Fed Gulch 13-23-14-93">Flat Top Fed Gulch 13-23-14-93</label>
                                   </div>
                                 </div>
                               </div>
@@ -259,8 +262,8 @@ export class Header extends Component {
                               <div className="col-xs-12" style={{padding: 0}}>
                                 <div className="radio" style={{margin: '2px 0'}}>
                                   <div className="custom-radio font-12 no-animation">
-                                    <input type="radio" name="well" id="Tierney 16-12-19-94" checked={this.state.well === 'Tierney 16-12-19-94'} onChange={() => this.handleWellSelection('Tierney 16-12-19-94')} />
-                                    <label htmlFor="well9">Tierney 16-12-19-94</label>
+                                    <input type="radio" name="well" id="Tierney 16-12-19-94" value="Tierney 16-12-19-94" checked={this.state.well === 'Tierney 16-12-19-94'} onChange={() => this.handleWellSelection('Tierney 16-12-19-94')} />
+                                    <label htmlFor="Tierney 16-12-19-94">Tierney 16-12-19-94</label>
                                   </div>
                                 </div>
                               </div>
@@ -271,8 +274,8 @@ export class Header extends Component {
                               <div className="col-xs-12" style={{padding: 0}}>
                                 <div className="radio" style={{margin: '2px 0'}}>
                                   <div className="custom-radio font-12 no-animation">
-                                    <input type="radio" name="well" id="Robbers Gulch 12-30-14-92" checked={this.state.well === 'Robbers Gulch 12-30-14-92'} onChange={() => this.handleWellSelection('Robbers Gulch 12-30-14-92')} />
-                                    <label htmlFor="well10">Robbers Gulch 12-30-14-92</label>
+                                    <input type="radio" name="well" id="Robbers Gulch 12-30-14-92" value="Robbers Gulch 12-30-14-92" checked={this.state.well === 'Robbers Gulch 12-30-14-92'} onChange={() => this.handleWellSelection('Robbers Gulch 12-30-14-92')} />
+                                    <label htmlFor="Robbers Gulch 12-30-14-92">Robbers Gulch 12-30-14-92</label>
                                   </div>
                                 </div>
                               </div>
