@@ -463,7 +463,7 @@ export default class HomeView extends Component {
                       midpoints = (30 * 7 * 24 * 60) / 2;
                     }
 
-                    agent.post('http://ec2-54-191-118-209.us-west-2.compute.amazonaws.com:5001/api/v1/model')
+                    agent.post('http://ec2-54-201-243-42.us-west-2.compute.amazonaws.com:5001/api/v1/model')
                       .send({ well: filtersRefInner.well, sensor: k, startDate: startDate.valueOf(), endDate: endDate.valueOf() })
                       .set('Accept', 'application/json')
                       .end((err, response) => {
