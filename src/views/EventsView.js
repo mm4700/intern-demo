@@ -121,12 +121,12 @@ export default class EventsView extends Component {
         .call(yAxis);
 
     const colors = {
-      'Well Offline': { color: '#fc8d62', id: 'welloffline' },
-      'Wellhead Maintenance': { color: '#a6d854', id: 'wellheadmaintenance' },
-      'Slickline': { color: '#b3b3b3', id: 'slickline' },
-      'Braided Line': { color: '#8da0cb', id: 'braidedline' },
-      'Snubbing': { color: '#ffd92f', id: 'snubbing' },
-      'Workover': { color: '#66c2a5', id: 'workover' }
+      'Well Offline': { color: '#A8E6CE', id: 'welloffline' },
+      'Wellhead Maintenance': { color: '#DCEDC2', id: 'wellheadmaintenance' },
+      'Slickline': { color: '#FFD385', id: 'slickline' },
+      'Braided Line': { color: '#FFAAA6', id: 'braidedline' },
+      'Snubbing': { color: '#FF8C94', id: 'snubbing' },
+      'Workover': { color: '#99B898', id: 'workover' }
     };
 
     let breakdown = {
