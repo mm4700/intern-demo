@@ -1,4 +1,4 @@
-1, with install node.js and mongodb(Take Window as an example):
+1, Begin with install node.js and mongodb(Take Window as an example):
 ```
 cd <path to your intern-demo doc>
 npm install
